@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  *
  * @param <T> the type of the contained value
  */
-public sealed interface Option<T> permits Option.Some, Option.None {
+public sealed interface Option<T> {
     /**
      * Creates a {@link Some} with the given non-null value.
      *

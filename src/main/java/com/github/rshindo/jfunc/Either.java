@@ -14,7 +14,7 @@ import java.util.function.Function;
  * @param <L> the left value type
  * @param <R> the right value type
  */
-public sealed interface Either<L, R> permits Either.Left, Either.Right {
+public sealed interface Either<L, R> {
 
     /**
      * Creates a {@link Right} with the given non-null value.
@@ -214,4 +214,3 @@ public sealed interface Either<L, R> permits Either.Left, Either.Right {
         }
     }
 }
-
