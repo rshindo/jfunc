@@ -47,6 +47,23 @@ dependencies {
 
 ## Quick Start
 
+### Tuple
+```java
+import com.github.rshindo.jfunc.Tuple;
+
+// Construct via factories
+Tuple.Tuple2<String, Integer> p = Tuple.of("id", 42);
+Tuple t = Tuple.of("x", 1, true);
+
+// Pattern matching (record patterns)
+String desc = switch (t) {
+    case Tuple.Tuple3(var a, var b, var c) -> a + ":" + b + ":" + c;
+    default -> "other";
+};
+
+int arity = t.arity(); // 3
+```
+
 ### Option
 ```java
 import com.github.rshindo.jfunc.Option;
