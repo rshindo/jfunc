@@ -30,9 +30,6 @@ public sealed interface Option<T> {
 	 * @throws IllegalArgumentException if {@code value} is {@code null}
 	 */
 	static <T> Option<T> some(T value) {
-		if (value == null) {
-			throw new IllegalArgumentException("value must not be null");
-		}
 		return new Some<>(value);
 	}
 
@@ -131,6 +128,12 @@ public sealed interface Option<T> {
 	 * @param value the contained non-null value
 	 */
 	record Some<T>(T value) implements Option<T> {
+		public Some {
+			if (value == null) {
+				throw new IllegalArgumentException("value must not be null");
+			}
+		}
+
 		@Override
 		public <R> Option<R> map(Function<? super T, ? extends R> mapper) {
 			R mapped = mapper.apply(value);
