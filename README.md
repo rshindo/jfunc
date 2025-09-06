@@ -12,7 +12,7 @@ A tiny, typed functional utilities library for Java. Sealed, Java‑friendly sum
   - Right‑biased: `map`, `flatMap` operate on `Right`; `mapLeft`/`ifLeft` for `Left`
   - Utilities: `swap()`, `toOptionalRight()`, `toOptionalLeft()`
 - `Result<T,E>`: Success/Failure for Railway Oriented Programming (ROP)
-  - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`ifFailure` for failures
+  - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`onFailure` for failures
   - Interop: `toOptionalSuccess()`, `toOptionalFailure()`
   - Minimal API: prefer switch pattern matching over helpers
 

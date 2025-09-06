@@ -10,7 +10,7 @@ import java.util.function.Function;
  * <p>
  * Design principles:
  * - Minimal API: prefer Java pattern matching over helpers; no fold-like methods are provided.
- * - Variant-oriented naming: {@link #ifSuccess(Consumer)} / {@link #ifFailure(Consumer)}.
+ * - Variant-oriented naming: {@link #onSuccess(Consumer)} / {@link #onFailure(Consumer)}.
  * - Nulls are not allowed for values or mapper results; factory methods reject null inputs.
  * </p>
  * <p>
@@ -86,10 +86,10 @@ public sealed interface Result<T, E> {
     <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper);
 
     /** Executes the consumer only when this is a {@link Success}. */
-    void ifSuccess(Consumer<? super T> consumer);
+    void onSuccess(Consumer<? super T> consumer);
 
     /** Executes the consumer only when this is a {@link Failure}. */
-    void ifFailure(Consumer<? super E> consumer);
+    void onFailure(Consumer<? super E> consumer);
 
     /** Converts the success value to {@link Optional}. */
     Optional<T> toOptionalSuccess();
@@ -125,12 +125,12 @@ public sealed interface Result<T, E> {
         }
 
         @Override
-        public void ifSuccess(Consumer<? super T> consumer) {
+        public void onSuccess(Consumer<? super T> consumer) {
             consumer.accept(value);
         }
 
         @Override
-        public void ifFailure(Consumer<? super E> consumer) { /* no-op */ }
+        public void onFailure(Consumer<? super E> consumer) { /* no-op */ }
 
         @Override
         public Optional<T> toOptionalSuccess() { return Optional.of(value); }
@@ -167,10 +167,10 @@ public sealed interface Result<T, E> {
         }
 
         @Override
-        public void ifSuccess(Consumer<? super T> consumer) { /* no-op */ }
+        public void onSuccess(Consumer<? super T> consumer) { /* no-op */ }
 
         @Override
-        public void ifFailure(Consumer<? super E> consumer) {
+        public void onFailure(Consumer<? super E> consumer) {
             consumer.accept(error);
         }
 

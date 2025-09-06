@@ -52,17 +52,17 @@ class ResultTest {
     }
 
     @Test
-    void ifSuccess_and_ifFailure_executeOnCorrectSide() {
+    void onSuccess_and_onFailure_executeOnCorrectSide() {
         AtomicReference<String> ref = new AtomicReference<>();
 
-        Result.<Integer, String>success(7).ifSuccess(v -> ref.set("OK" + v));
+        Result.<Integer, String>success(7).onSuccess(v -> ref.set("OK" + v));
         assertEquals("OK7", ref.get());
 
         ref.set(null);
-        Result.<Integer, String>failure("E").ifSuccess(v -> ref.set("OK" + v));
+        Result.<Integer, String>failure("E").onSuccess(v -> ref.set("OK" + v));
         assertNull(ref.get());
 
-        Result.<Integer, String>failure("E").ifFailure(ref::set);
+        Result.<Integer, String>failure("E").onFailure(ref::set);
         assertEquals("E", ref.get());
     }
 
