@@ -46,83 +46,108 @@ dependencies {
 ```
 
 ## Quick Start
+
+### Option
 ```java
 import com.github.rshindo.jfunc.Option;
-import com.github.rshindo.jfunc.Either;
-import com.github.rshindo.jfunc.Result;
-import com.github.rshindo.jfunc.Try;
 
 Option<Integer> a = Option.some(10);
 Option<Integer> b = Option.none();
 
-// Map: null result becomes None (like Optional.map)
-Option<String> s = a.map(x -> x == 10 ? "ten" : null); // Some("ten")
-Option<String> t = b.map(Object::toString);             // None
-
-// FlatMap
-Option<Integer> f = a.flatMap(x -> x % 2 == 0 ? Option.some(x / 2) : Option.none());
-
-// Filter
-Option<Integer> even = a.filter(x -> x % 2 == 0); // Some(10)
-Option<Integer> odd  = a.filter(x -> x % 2 == 1); // None
-
-// ifPresent
-a.ifPresent(x -> System.out.println("value: " + x));
-
-// ofNullable vs some
-Option<String> n1 = Option.ofNullable(null);  // None
-// Option.some(null); // throws IllegalArgumentException
-
-// Optional interop
-java.util.Optional<Integer> opt = a.toOptional();
-Option<Integer> fromOpt = Option.fromOptional(opt);
-
-// Stream interop (Java 9+)
-int sum = a.stream().mapToInt(Integer::intValue).sum(); // 10 or 0
-
-// Either (right-biased)
-Either<String, Integer> e1 = Either.right(42);
-Either<String, Integer> e2 = Either.left("oops");
-Either<String, String> em = e1.map(x -> "v=" + x);      // Right("v=42")
-Either<Integer, Integer> ml = e2.mapLeft(String::length); // Left(4)
-
-// Result (ROP, success/failure)
-Result<Integer, String> r1 = Result.success(7);
-Result<Integer, String> r2 = Result.failure("invalid");
-Result<String, String> r3 = r1.flatMap(x -> x % 2 == 1
-        ? Result.failure("odd:" + x)
-        : Result.success("even:" + x));
+// Map / FlatMap / Filter
+Option<String> ms = a.map(x -> x == 10 ? "ten" : null); // Some("ten")
+Option<Integer> mf = a.flatMap(x -> x % 2 == 0 ? Option.some(x / 2) : Option.none());
+Option<Integer> fl = a.filter(x -> x % 2 == 0); // Some(10)
 
 // Pattern matching (Java 21+)
-String s1 = switch (e1) {
-    case Either.Left(var l) -> "LEFT:" + l;
+String label = switch (a) {
+    case Option.Some(var v) -> "SOME:" + v;
+    case Option.None()      -> "NONE";
+};
+
+// Interop
+java.util.Optional<Integer> opt = a.toOptional();
+Option<Integer> fromOpt = Option.fromOptional(opt);
+```
+
+### Either
+```java
+import com.github.rshindo.jfunc.Either;
+
+Either<String, Integer> e = Math.random() > 0.5 ? Either.right(42) : Either.left("oops");
+
+// Right-biased ops
+Either<String, String> em = e.map(x -> "v=" + x);
+Either<Integer, Integer> ml = e.mapLeft(String::length);
+
+// Pattern matching
+String lab = switch (e) {
     case Either.Right(var r) -> "RIGHT:" + r;
+    case Either.Left(var l)  -> "LEFT:" + l;
 };
-String s2 = switch (r2) {
-    case Result.Success(var v) -> "OK:" + v;
-    case Result.Failure(var err) -> "ERR:" + err;
-};
-
-// Try (capture exceptions)
-Try<Integer> t = Try.of(() -> Integer.parseInt("123"));         // Success(123)
-Try<Integer> u = Try.of(() -> Integer.parseInt("not-a-number")); // Failure(NumberFormatException)
-
-// Map/flatMap
-Try<String> ts = t.map(x -> "v=" + x); // Success("v=123")
-
-// Side-effects
-t.onSuccess(v -> System.out.println("ok: " + v));
-u.onFailure(e -> System.err.println("error: " + e.getMessage()));
-
-// Conversions
-Either<Throwable,Integer> te = t.toEither();  // Right(123)
-Result<Integer,Throwable> tr = u.toResult();  // Failure(NumberFormatException)
 
 // Option conversions
-Option<Integer> eRight = e1.toOptionRight();           // Some(42)
-Option<Integer> rOk   = r1.toOptionSuccess();          // Some(7)
-Option<String>  rErr  = r2.toOptionFailure();          // Some("invalid")
-Option<Integer> tOk   = t.toOptionSuccess();           // Some(123)
+Option<Integer> rightOpt = e.toOptionRight();
+Option<String>  leftOpt  = e.toOptionLeft();
+```
+
+### Result (ROP)
+```java
+import com.github.rshindo.jfunc.Result;
+import com.github.rshindo.jfunc.Option;
+import java.util.function.Function;
+
+// Step functions (String -> Result<...>)
+Function<String, Result<String, String>> notBlank = s ->
+        (s == null || s.isBlank()) ? Result.failure("empty") : Result.success(s.trim());
+
+Function<String, Result<Integer, String>> parseInt = s -> {
+    try { return Result.success(Integer.parseInt(s)); }
+    catch (NumberFormatException e) { return Result.failure("nan:" + s); }
+};
+
+Function<Integer, Result<Integer, String>> evenOnly = n ->
+        (n % 2 == 0) ? Result.success(n) : Result.failure("odd:" + n);
+
+// Pipeline
+String input = "42";
+Result<Integer, String> res = Result.success(input)
+        .flatMap(notBlank)
+        .flatMap(parseInt)
+        .flatMap(evenOnly);
+
+// Pattern matching
+String msg = switch (res) {
+    case Result.Success(var v) -> "OK:" + v;
+    case Result.Failure(var e) -> "ERR:" + e;
+};
+
+// Option conversions
+Option<Integer> okOpt  = res.toOptionSuccess();
+Option<String>  errOpt = res.toOptionFailure();
+```
+
+### Try
+```java
+import com.github.rshindo.jfunc.Try;
+
+Try<Integer> t = Try.of(() -> Integer.parseInt("123"));
+Try<Integer> u = Try.of(() -> Integer.parseInt("not-a-number"));
+
+// Map/flatMap
+Try<String> tm = t.map(x -> "v=" + x);
+
+// Pattern matching
+String tl = switch (u) {
+    case Try.Success(var v) -> "OK:" + v;
+    case Try.Failure(var e) -> "ERR:" + e.getMessage();
+};
+
+// Conversions
+Either<Throwable,Integer> te = t.toEither();
+Result<Integer,Throwable> tr = u.toResult();
+Option<Integer> tOk = t.toOptionSuccess();
+Option<Throwable> tNg = u.toOptionFailure();
 ```
 
 ## Semantics & Design
