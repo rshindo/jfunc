@@ -15,6 +15,10 @@ A tiny, typed functional utilities library for Java. Sealed, Java‑friendly sum
   - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`onFailure` for failures
   - Interop: `toOptionalSuccess()`, `toOptionalFailure()`
   - Minimal API: prefer switch pattern matching over helpers
+- `Try<T>`: Success/Failure for computations that may throw
+  - Construct: `Try.of(CheckedSupplier)` to capture exceptions as `Failure`
+  - Right‑biased: `map`, `flatMap` on `Success`; side effects via `onSuccess`/`onFailure`
+  - Interop: `toOptionalSuccess()`, `toOptionalFailure()`, `toEither()`, `toResult()`
 
 ## Requirements
 - Java 21+ (project currently compiles and runs tests on 21)
@@ -46,6 +50,7 @@ dependencies {
 import com.github.rshindo.jfunc.Option;
 import com.github.rshindo.jfunc.Either;
 import com.github.rshindo.jfunc.Result;
+import com.github.rshindo.jfunc.Try;
 
 Option<Integer> a = Option.some(10);
 Option<Integer> b = Option.none();
@@ -97,6 +102,21 @@ String s2 = switch (r2) {
     case Result.Success(var v) -> "OK:" + v;
     case Result.Failure(var err) -> "ERR:" + err;
 };
+
+// Try (capture exceptions)
+Try<Integer> t = Try.of(() -> Integer.parseInt("123"));         // Success(123)
+Try<Integer> u = Try.of(() -> Integer.parseInt("not-a-number")); // Failure(NumberFormatException)
+
+// Map/flatMap
+Try<String> ts = t.map(x -> "v=" + x); // Success("v=123")
+
+// Side-effects
+t.onSuccess(v -> System.out.println("ok: " + v));
+u.onFailure(e -> System.err.println("error: " + e.getMessage()));
+
+// Conversions
+Either<Throwable,Integer> te = t.toEither();  // Right(123)
+Result<Integer,Throwable> tr = u.toResult();  // Failure(NumberFormatException)
 ```
 
 ## Semantics & Design
@@ -105,9 +125,11 @@ String s2 = switch (r2) {
 - Null policy:
   - `Option.some(null)` throws; use `ofNullable` to map `null` to `None`.
   - `Either` and `Result` disallow `null` in both variants; mappers must not return `null`.
+  - `Try` disallows `null` success values; mappers must not return `null`. Failures carry a non-null `Throwable`.
 - Bias:
   - `Either` and `Result` are right‑biased: `map`/`flatMap` act on `Right`/`Success`.
   - Use `mapLeft` (Either) or `mapFailure` (Result) for the left/failure path.
+  - `Try` is right‑biased: `map`/`flatMap` act on `Success`; use `onFailure` for side-effects.
 - Equality: record value equality; distinct `None` instances compare equal.
 - No `None` singleton: `Option.none()` returns a new instance by design.
 
