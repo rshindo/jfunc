@@ -40,6 +40,7 @@
 - 変更は機能単位で最小限に。無関係な修正は別 PR/コミットに分離。
 - Javadoc は日本語で要点を簡潔に。公開メソッド/型に付与する。
 - 一文字変数や曖昧な命名を避け、読みやすさを優先。
+ - パターンマッチ優先: `sealed` 型に対する API は、パターンマッチ（`switch`/型パターン）で表現可能な機能は極力追加しない。例: `Either.fold(...)` は提供しない。
 
 ## テスト追加の方針
 - 新機能や仕様変更には、`Some` と `None` 双方の経路をカバーするテストを追加する。
@@ -54,3 +55,15 @@
 - 実装: `src/main/java/com/github/rshindo/jfunc/Option.java`
 - テスト: `src/test/java/com/github/rshindo/jfunc/OptionTest.java`
 - ビルド: `pom.xml`
+
+## Either の設計方針
+- 目的: 失敗/成功の直和型。右（`Right`）が成功、左（`Left`）が失敗/理由。
+- 形態: `Either` は `sealed interface`。実装はネストされた `record Left` / `record Right`。`permits` 明示は省略。
+- 実装先: default メソッドを避け、挙動は `Left`/`Right` 側に実装する。
+- 生成:
+  - `Either.right(R)` は `null` を非許容（例外）。
+  - `Either.left(L)` は `null` を非許容（例外）。
+- 基本操作（右優先の文脈）: `map` / `flatMap` / `ifRight`。
+- 左側操作: `mapLeft` / `ifLeft`。
+- 変換: `toOptionalRight()` / `toOptionalLeft()`。
+- パターンマッチ優先: 左右の畳み込みは `switch` で行う。`fold` などパターンマッチで代替可能な API は追加しない。
