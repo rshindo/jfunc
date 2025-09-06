@@ -73,11 +73,11 @@ class EitherTest {
     }
 
     @Test
-    void toOptional_convertsEachSide() {
-        assertEquals(Optional.of("r"), Either.<Integer, String>right("r").toOptionalRight());
-        assertEquals(Optional.empty(), Either.<Integer, String>right("r").toOptionalLeft());
-        assertEquals(Optional.of(3), Either.<Integer, String>left(3).toOptionalLeft());
-        assertEquals(Optional.empty(), Either.<Integer, String>left(3).toOptionalRight());
+    void toOption_convertsEachSide() {
+        assertEquals(Option.some("r"), Either.<Integer, String>right("r").toOptionRight());
+        assertEquals(Option.none(), Either.<Integer, String>right("r").toOptionLeft());
+        assertEquals(Option.some(3), Either.<Integer, String>left(3).toOptionLeft());
+        assertEquals(Option.none(), Either.<Integer, String>left(3).toOptionRight());
     }
 
     @Test

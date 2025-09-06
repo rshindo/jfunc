@@ -1,6 +1,5 @@
 package com.github.rshindo.jfunc;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -16,9 +15,9 @@ import java.util.function.Function;
  * <p>
  * Semantics:
  * - Right-biased operations: {@link #map(Function)} and {@link #flatMap(Function)} operate on {@code Success}
- *   and propagate {@code Failure} unchanged.
+ * and propagate {@code Failure} unchanged.
  * - Transform failures with {@link #mapFailure(Function)}.
- * - Convert to {@link Optional} via {@link #toOptionalSuccess()} / {@link #toOptionalFailure()}.
+ * - Convert to {@link Option} via {@link #toOptionSuccess()} / {@link #toOptionFailure()}.
  * </p>
  *
  * @param <T> type of the success value
@@ -26,158 +25,188 @@ import java.util.function.Function;
  */
 public sealed interface Result<T, E> {
 
-    /**
-     * Creates a {@link Success} with the given non-null value.
-     *
-     * @param value the success value (must be non-null)
-     * @param <T>   success type
-     * @param <E>   failure type
-     * @return a {@link Success}
-     * @throws IllegalArgumentException if {@code value} is {@code null}
-     */
-    static <T, E> Result<T, E> success(T value) {
-        if (value == null) {
-            throw new IllegalArgumentException("value must not be null");
-        }
-        return new Success<>(value);
-    }
+	/**
+	 * Creates a {@link Success} with the given non-null value.
+	 *
+	 * @param value the success value (must be non-null)
+	 * @param <T>   success type
+	 * @param <E>   failure type
+	 * @return a {@link Success}
+	 * @throws IllegalArgumentException if {@code value} is {@code null}
+	 */
+	static <T, E> Result<T, E> success(T value) {
+		if (value == null) {
+			throw new IllegalArgumentException("value must not be null");
+		}
+		return new Success<>(value);
+	}
 
-    /**
-     * Creates a {@link Failure} with the given non-null error value.
-     *
-     * @param error the failure value (must be non-null)
-     * @param <T>   success type
-     * @param <E>   failure type
-     * @return a {@link Failure}
-     * @throws IllegalArgumentException if {@code error} is {@code null}
-     */
-    static <T, E> Result<T, E> failure(E error) {
-        if (error == null) {
-            throw new IllegalArgumentException("error must not be null");
-        }
-        return new Failure<>(error);
-    }
+	/**
+	 * Creates a {@link Failure} with the given non-null error value.
+	 *
+	 * @param error the failure value (must be non-null)
+	 * @param <T>   success type
+	 * @param <E>   failure type
+	 * @return a {@link Failure}
+	 * @throws IllegalArgumentException if {@code error} is {@code null}
+	 */
+	static <T, E> Result<T, E> failure(E error) {
+		if (error == null) {
+			throw new IllegalArgumentException("error must not be null");
+		}
+		return new Failure<>(error);
+	}
 
-    /**
-     * Maps the success value; a failure is propagated unchanged.
-     *
-     * @param mapper mapping function for the success value (must not return null)
-     * @param <U>    mapped success type
-     * @return mapped {@link Result}
-     */
-    <U> Result<U, E> map(Function<? super T, ? extends U> mapper);
+	/**
+	 * Maps the success value; a failure is propagated unchanged.
+	 *
+	 * @param mapper mapping function for the success value (must not return null)
+	 * @param <U>    mapped success type
+	 * @return mapped {@link Result}
+	 */
+	<U> Result<U, E> map(Function<? super T, ? extends U> mapper);
 
-    /**
-     * Maps the failure value; a success is propagated unchanged.
-     *
-     * @param mapper mapping function for the failure value (must not return null)
-     * @param <E2>   mapped failure type
-     * @return mapped {@link Result}
-     */
-    <E2> Result<T, E2> mapFailure(Function<? super E, ? extends E2> mapper);
+	/**
+	 * Maps the failure value; a success is propagated unchanged.
+	 *
+	 * @param mapper mapping function for the failure value (must not return null)
+	 * @param <E2>   mapped failure type
+	 * @return mapped {@link Result}
+	 */
+	<E2> Result<T, E2> mapFailure(Function<? super E, ? extends E2> mapper);
 
-    /**
-     * Flat-maps the success value; a failure is propagated unchanged.
-     *
-     * @param mapper mapping function returning a {@link Result}
-     * @param <U>    mapped success type
-     * @return mapped {@link Result}
-     */
-    <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper);
+	/**
+	 * Flat-maps the success value; a failure is propagated unchanged.
+	 *
+	 * @param mapper mapping function returning a {@link Result}
+	 * @param <U>    mapped success type
+	 * @return mapped {@link Result}
+	 */
+	<U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper);
 
-    /** Executes the consumer only when this is a {@link Success}. */
-    void onSuccess(Consumer<? super T> consumer);
+	/**
+	 * Executes the consumer only when this is a {@link Success}.
+	 *
+	 * @param consumer side-effect to execute with the success value
+	 * @throws NullPointerException if {@code consumer} is {@code null}
+	 */
+	void onSuccess(Consumer<? super T> consumer);
 
-    /** Executes the consumer only when this is a {@link Failure}. */
-    void onFailure(Consumer<? super E> consumer);
+	/**
+	 * Executes the consumer only when this is a {@link Failure}.
+	 *
+	 * @param consumer side-effect to execute with the failure value
+	 * @throws NullPointerException if {@code consumer} is {@code null}
+	 */
+	void onFailure(Consumer<? super E> consumer);
 
-    /** Converts the success value to {@link Optional}. */
-    Optional<T> toOptionalSuccess();
+	/**
+	 * Converts the success value to {@link Option}.
+	 *
+	 * @return {@code Option.some(value)} for {@link Success}; otherwise {@code Option.none()}
+	 */
+	Option<T> toOptionSuccess();
 
-    /** Converts the failure value to {@link Optional}. */
-    Optional<E> toOptionalFailure();
+	/**
+	 * Converts the failure value to {@link Option}.
+	 *
+	 * @return {@code Option.some(error)} for {@link Failure}; otherwise {@code Option.none()}
+	 */
+	Option<E> toOptionFailure();
 
-    /** Variant representing success. Carries a non-null success value. */
-    record Success<T, E>(T value) implements Result<T, E> {
-        public Success {
-            if (value == null) {
-                throw new IllegalArgumentException("value must not be null");
-            }
-        }
+	/**
+	 * Variant representing success. Carries a non-null success value.
+	 */
+	record Success<T, E>(T value) implements Result<T, E> {
+		public Success {
+			if (value == null) {
+				throw new IllegalArgumentException("value must not be null");
+			}
+		}
 
-        @Override
-        public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
-            U mapped = mapper.apply(value);
-            if (mapped == null) {
-                throw new IllegalArgumentException("mapped ok value must not be null");
-            }
-            return new Success<>(mapped);
-        }
+		@Override
+		public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
+			U mapped = mapper.apply(value);
+			if (mapped == null) {
+				throw new IllegalArgumentException("mapped ok value must not be null");
+			}
+			return new Success<>(mapped);
+		}
 
-        @Override
-        public <E2> Result<T, E2> mapFailure(Function<? super E, ? extends E2> mapper) {
-            return new Success<>(value);
-        }
+		@Override
+		public <E2> Result<T, E2> mapFailure(Function<? super E, ? extends E2> mapper) {
+			return new Success<>(value);
+		}
 
-        @Override
-        public <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper) {
-            return mapper.apply(value);
-        }
+		@Override
+		public <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper) {
+			return mapper.apply(value);
+		}
 
-        @Override
-        public void onSuccess(Consumer<? super T> consumer) {
-            consumer.accept(value);
-        }
+		@Override
+		public void onSuccess(Consumer<? super T> consumer) {
+			consumer.accept(value);
+		}
 
-        @Override
-        public void onFailure(Consumer<? super E> consumer) { /* no-op */ }
+		@Override
+		public void onFailure(Consumer<? super E> consumer) { /* no-op */ }
 
-        @Override
-        public Optional<T> toOptionalSuccess() { return Optional.of(value); }
+		@Override
+		public Option<T> toOptionSuccess() {
+			return Option.some(value);
+		}
 
-        @Override
-        public Optional<E> toOptionalFailure() { return Optional.empty(); }
-    }
+		@Override
+		public Option<E> toOptionFailure() {
+			return Option.none();
+		}
+	}
 
-    /** Variant representing failure. Carries a non-null failure value. */
-    record Failure<T, E>(E error) implements Result<T, E> {
-        public Failure {
-            if (error == null) {
-                throw new IllegalArgumentException("error must not be null");
-            }
-        }
+	/**
+	 * Variant representing failure. Carries a non-null failure value.
+	 */
+	record Failure<T, E>(E error) implements Result<T, E> {
+		public Failure {
+			if (error == null) {
+				throw new IllegalArgumentException("error must not be null");
+			}
+		}
 
-        @Override
-        public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
-            return new Failure<>(error);
-        }
+		@Override
+		public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
+			return new Failure<>(error);
+		}
 
-        @Override
-        public <E2> Result<T, E2> mapFailure(Function<? super E, ? extends E2> mapper) {
-            E2 mapped = mapper.apply(error);
-            if (mapped == null) {
-                throw new IllegalArgumentException("mapped failure value must not be null");
-            }
-            return new Failure<>(mapped);
-        }
+		@Override
+		public <E2> Result<T, E2> mapFailure(Function<? super E, ? extends E2> mapper) {
+			E2 mapped = mapper.apply(error);
+			if (mapped == null) {
+				throw new IllegalArgumentException("mapped failure value must not be null");
+			}
+			return new Failure<>(mapped);
+		}
 
-        @Override
-        public <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper) {
-            return new Failure<>(error);
-        }
+		@Override
+		public <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper) {
+			return new Failure<>(error);
+		}
 
-        @Override
-        public void onSuccess(Consumer<? super T> consumer) { /* no-op */ }
+		@Override
+		public void onSuccess(Consumer<? super T> consumer) { /* no-op */ }
 
-        @Override
-        public void onFailure(Consumer<? super E> consumer) {
-            consumer.accept(error);
-        }
+		@Override
+		public void onFailure(Consumer<? super E> consumer) {
+			consumer.accept(error);
+		}
 
-        @Override
-        public Optional<T> toOptionalSuccess() { return Optional.empty(); }
+		@Override
+		public Option<T> toOptionSuccess() {
+			return Option.none();
+		}
 
-        @Override
-        public Optional<E> toOptionalFailure() { return Optional.of(error); }
-    }
+		@Override
+		public Option<E> toOptionFailure() {
+			return Option.some(error);
+		}
+	}
 }

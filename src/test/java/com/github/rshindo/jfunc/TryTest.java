@@ -62,14 +62,13 @@ class TryTest {
     }
 
     @Test
-    void optionals_convertProperly() {
-        assertEquals(Optional.of(1), Try.success(1).toOptionalSuccess());
-        assertEquals(Optional.empty(), Try.success(1).toOptionalFailure());
+    void options_convertProperly() {
+        assertEquals(Option.some(1), Try.success(1).toOptionSuccess());
+        assertEquals(Option.none(), Try.success(1).toOptionFailure());
 
         Try<Integer> f = Try.failure(new IllegalArgumentException("x"));
-        assertEquals(Optional.empty(), f.toOptionalSuccess());
-        assertTrue(f.toOptionalFailure().isPresent());
-        assertEquals("x", f.toOptionalFailure().get().getMessage());
+        assertEquals(Option.none(), f.toOptionSuccess());
+        assertEquals(Option.some(new IllegalArgumentException("x")).toString(), f.toOptionFailure().toString());
     }
 
     @Test
@@ -82,11 +81,11 @@ class TryTest {
         Try<Integer> t = Try.failure(new RuntimeException("oops"));
         var e = t.toEither();
         assertTrue(e instanceof Either.Left<?, ?>);
-        assertEquals(Optional.of("oops"), e.toOptionalLeft().map(Throwable::getMessage));
+        assertEquals(Option.some("oops"), e.toOptionLeft().map(Throwable::getMessage));
 
         var r = t.toResult();
-        assertEquals(Optional.of("oops"), r.toOptionalFailure().map(Throwable::getMessage));
-        assertEquals(Optional.empty(), r.toOptionalSuccess());
+        assertEquals(Option.some("oops"), r.toOptionFailure().map(Throwable::getMessage));
+        assertEquals(Option.none(), r.toOptionSuccess());
     }
 
     @Test

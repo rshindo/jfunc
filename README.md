@@ -10,15 +10,15 @@ A tiny, typed functional utilities library for Java. Sealed, Java‑friendly sum
   - Null policy: `some(null)` throws; `map` returning `null` becomes `None`
 - `Either<L,R>`: `Left`/`Right` disjoint union
   - Right‑biased: `map`, `flatMap` operate on `Right`; `mapLeft`/`ifLeft` for `Left`
-  - Utilities: `swap()`, `toOptionalRight()`, `toOptionalLeft()`
+  - Utilities: `swap()`, `toOptionRight()`, `toOptionLeft()`
 - `Result<T,E>`: Success/Failure for Railway Oriented Programming (ROP)
   - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`onFailure` for failures
-  - Interop: `toOptionalSuccess()`, `toOptionalFailure()`
+  - Interop: `toOptionSuccess()`, `toOptionFailure()`
   - Minimal API: prefer switch pattern matching over helpers
 - `Try<T>`: Success/Failure for computations that may throw
   - Construct: `Try.of(CheckedSupplier)` to capture exceptions as `Failure`
   - Right‑biased: `map`, `flatMap` on `Success`; side effects via `onSuccess`/`onFailure`
-  - Interop: `toOptionalSuccess()`, `toOptionalFailure()`, `toEither()`, `toResult()`
+  - Interop: `toOptionSuccess()`, `toOptionFailure()`, `toEither()`, `toResult()`
 
 ## Requirements
 - Java 21+ (project currently compiles and runs tests on 21)
@@ -117,6 +117,12 @@ u.onFailure(e -> System.err.println("error: " + e.getMessage()));
 // Conversions
 Either<Throwable,Integer> te = t.toEither();  // Right(123)
 Result<Integer,Throwable> tr = u.toResult();  // Failure(NumberFormatException)
+
+// Option conversions
+Option<Integer> eRight = e1.toOptionRight();           // Some(42)
+Option<Integer> rOk   = r1.toOptionSuccess();          // Some(7)
+Option<String>  rErr  = r2.toOptionFailure();          // Some("invalid")
+Option<Integer> tOk   = t.toOptionSuccess();           // Some(123)
 ```
 
 ## Semantics & Design

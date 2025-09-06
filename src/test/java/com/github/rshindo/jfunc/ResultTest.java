@@ -67,11 +67,11 @@ class ResultTest {
     }
 
     @Test
-    void toOptional_convertsEachSide() {
-        assertEquals(Optional.of(1), Result.<Integer, String>success(1).toOptionalSuccess());
-        assertEquals(Optional.empty(), Result.<Integer, String>success(1).toOptionalFailure());
-        assertEquals(Optional.of("x"), Result.<Integer, String>failure("x").toOptionalFailure());
-        assertEquals(Optional.empty(), Result.<Integer, String>failure("x").toOptionalSuccess());
+    void toOption_convertsEachSide() {
+        assertEquals(Option.some(1), Result.<Integer, String>success(1).toOptionSuccess());
+        assertEquals(Option.none(), Result.<Integer, String>success(1).toOptionFailure());
+        assertEquals(Option.some("x"), Result.<Integer, String>failure("x").toOptionFailure());
+        assertEquals(Option.none(), Result.<Integer, String>failure("x").toOptionSuccess());
     }
 
     @Test
