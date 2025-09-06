@@ -150,6 +150,37 @@ Option<Integer> tOk = t.toOptionSuccess();
 Option<Throwable> tNg = u.toOptionFailure();
 ```
 
+Hint: Try.of + try-with-resources
+```java
+import com.github.rshindo.jfunc.Try;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
+
+// Read first line from a file
+Try<String> firstLine = Try.of(() -> {
+    try (var br = Files.newBufferedReader(Path.of("data.txt"), StandardCharsets.UTF_8)) {
+        return br.readLine(); // null -> Failure via Try.success(null) rule
+    }
+});
+
+String msg = switch (firstLine) {
+    case Try.Success(var v) -> "OK: " + v;
+    case Try.Failure(var e) -> "ERR: " + e.getMessage();
+};
+
+// Count lines with multiple resources
+Try<Long> count = Try.of(() -> {
+    try (var in = Files.newInputStream(Path.of("data.txt"));
+         var br = new java.io.BufferedReader(new java.io.InputStreamReader(in, StandardCharsets.UTF_8))) {
+        return br.lines().count();
+    }
+});
+
+count.onSuccess(c -> System.out.println("lines: " + c))
+     .onFailure(e -> System.err.println("read failed: " + e.getMessage()));
+```
+
 ## Semantics & Design
 - Sealed + nested records: `Option`, `Either`, and `Result` are sealed interfaces with nested record variants.
 - Pattern‑matching first: prefer Java `switch`/type patterns; helper methods like `fold` are deliberately not included.
