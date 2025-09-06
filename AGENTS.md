@@ -19,11 +19,11 @@
 - 形態: `Option` は `sealed interface`。実装はネストされた `record Some` / `record None`。
 - 実装先: 可能な限り default メソッドを避け、挙動は `Some`/`None` 側に実装する。
 - 生成:
-  - `Option.some(T)` は `null` を許容（`Some(null)`）。
+  - `Option.some(T)` は `null` を非許容（`null` なら `IllegalArgumentException`）。
   - `Option.none()` は毎回 `new None<>()`（シングルトンは現時点で採用しない）。
   - `Option.ofNullable(T)` は `null -> None`, 非 null -> `Some(value)`。
 - 変換: `toOptional()` / `fromOptional(Optional)` を提供。
-  - `Some(null).toOptional()` は `Optional.empty()`。
+  - 備考: `some(null)` を認めないため、`Some` には常に非 null 値が入る。
 - 基本操作: `map` / `flatMap` / `filter` / `ifPresent`。
   - `map`: Some の値に適用し `some(...)` を返す。None は None。
   - `flatMap`: Some に適用し返却 `Option` をそのまま返す。None は None。
