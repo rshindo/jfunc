@@ -1,6 +1,6 @@
 # jfunc
 
-A tiny, typed functional utilities library for Java. Currently provides a sealed `Option<T>` type (a `Maybe`-like container) with a minimal, Java-friendly API.
+A tiny, typed functional utilities library for Java. Currently, provides a sealed `Option<T>` type (a `Maybe`-like container) with a minimal, Java-friendly API.
 
 ## Features
 - `Option<T>` with `Some`/`None` states (sealed interface + records)
