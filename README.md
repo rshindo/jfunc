@@ -1,13 +1,20 @@
 # jfunc
 
-A tiny, typed functional utilities library for Java. Currently, provides a sealed `Option<T>` type (a `Maybe`-like container) with a minimal, Java-friendly API.
+A tiny, typed functional utilities library for Java. Sealed, Java‑friendly sum types with minimal APIs and pattern‑matching first design.
 
 ## Features
-- `Option<T>` with `Some`/`None` states (sealed interface + records)
-- Core ops: `map`, `flatMap`, `filter`, `ifPresent`
-- Interop: `toOptional()`, `fromOptional(Optional)`, `stream()`
-- Constructors: `some(T)`, `none()`, `ofNullable(T)`
-- Clear null policy: `some(null)` throws; `map` returning `null` becomes `None`
+- `Option<T>`: `Some`/`None` (sealed interface + records)
+  - Ops: `map`, `flatMap`, `filter`, `ifPresent`
+  - Interop: `toOptional()`, `fromOptional(Optional)`, `stream()`
+  - Constructors: `some(T)`, `none()`, `ofNullable(T)`
+  - Null policy: `some(null)` throws; `map` returning `null` becomes `None`
+- `Either<L,R>`: `Left`/`Right` disjoint union
+  - Right‑biased: `map`, `flatMap` operate on `Right`; `mapLeft`/`ifLeft` for `Left`
+  - Utilities: `swap()`, `toOptionalRight()`, `toOptionalLeft()`
+- `Result<T,E>`: Success/Failure for Railway Oriented Programming (ROP)
+  - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`ifFailure` for failures
+  - Interop: `toOptionalSuccess()`, `toOptionalFailure()`
+  - Minimal API: prefer switch pattern matching over helpers
 
 ## Requirements
 - Java 21+ (project currently compiles and runs tests on 21)
@@ -37,6 +44,8 @@ dependencies {
 ## Quick Start
 ```java
 import com.github.rshindo.jfunc.Option;
+import com.github.rshindo.jfunc.Either;
+import com.github.rshindo.jfunc.Result;
 
 Option<Integer> a = Option.some(10);
 Option<Integer> b = Option.none();
@@ -65,17 +74,44 @@ Option<Integer> fromOpt = Option.fromOptional(opt);
 
 // Stream interop (Java 9+)
 int sum = a.stream().mapToInt(Integer::intValue).sum(); // 10 or 0
+
+// Either (right-biased)
+Either<String, Integer> e1 = Either.right(42);
+Either<String, Integer> e2 = Either.left("oops");
+Either<String, String> em = e1.map(x -> "v=" + x);      // Right("v=42")
+Either<Integer, Integer> ml = e2.mapLeft(String::length); // Left(4)
+
+// Result (ROP, success/failure)
+Result<Integer, String> r1 = Result.success(7);
+Result<Integer, String> r2 = Result.failure("invalid");
+Result<String, String> r3 = r1.flatMap(x -> x % 2 == 1
+        ? Result.failure("odd:" + x)
+        : Result.success("even:" + x));
+
+// Pattern matching (Java 21+)
+String s1 = switch (e1) {
+    case Either.Left(var l) -> "LEFT:" + l;
+    case Either.Right(var r) -> "RIGHT:" + r;
+};
+String s2 = switch (r2) {
+    case Result.Success(var v) -> "OK:" + v;
+    case Result.Failure(var err) -> "ERR:" + err;
+};
 ```
 
 ## Semantics & Design
-- `Option` is a sealed interface with nested records `Some` and `None`.
-- `some(T)` requires non-null and throws `IllegalArgumentException` for null.
-- `ofNullable(T)` converts null to `None`, non-null to `Some(value)`.
-- `map` returns `None` if the mapper returns `null` (aligns with `Optional.map`).
-- `equals`/`hashCode` come from records; two `None` instances compare equal.
-- `None` is not a public singleton; `Option.none()` creates a fresh instance (by design).
+- Sealed + nested records: `Option`, `Either`, and `Result` are sealed interfaces with nested record variants.
+- Pattern‑matching first: prefer Java `switch`/type patterns; helper methods like `fold` are deliberately not included.
+- Null policy:
+  - `Option.some(null)` throws; use `ofNullable` to map `null` to `None`.
+  - `Either` and `Result` disallow `null` in both variants; mappers must not return `null`.
+- Bias:
+  - `Either` and `Result` are right‑biased: `map`/`flatMap` act on `Right`/`Success`.
+  - Use `mapLeft` (Either) or `mapFailure` (Result) for the left/failure path.
+- Equality: record value equality; distinct `None` instances compare equal.
+- No `None` singleton: `Option.none()` returns a new instance by design.
 
 ## Development
 - Run tests: `mvn test`
 - Test framework: JUnit Jupiter 5 via Maven Surefire
-- See also: `AGENTS.md` for working guidelines
+- See also: `AGENTS.md` for working guidelines and API design policies
