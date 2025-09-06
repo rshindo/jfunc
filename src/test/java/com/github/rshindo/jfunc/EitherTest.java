@@ -68,8 +68,8 @@ class EitherTest {
 
     @Test
     void swap_exchangesSides() {
-        assertEquals(Either.left(1), Either.<Integer, String>right("x").swap());
-        assertEquals(Either.right("x"), Either.<Integer, String>left(1).swap());
+        assertEquals(Either.left("x"), Either.<Integer, String>right("x").swap());
+        assertEquals(Either.right(1), Either.<Integer, String>left(1).swap());
     }
 
     @Test
@@ -86,4 +86,3 @@ class EitherTest {
         assertThrows(IllegalArgumentException.class, () -> Either.left(null));
     }
 }
-
