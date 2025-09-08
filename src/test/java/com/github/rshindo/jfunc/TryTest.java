@@ -110,4 +110,27 @@ class TryTest {
         };
         assertEquals("ERR:nope", sb);
     }
+
+    @Test
+    void run_executes_side_effect_and_yields_unit() {
+        var ref = new java.util.concurrent.atomic.AtomicInteger();
+        Try<Unit> t = Try.run(ref::incrementAndGet);
+        // assert Success(Unit)
+        String s = switch (t) {
+            case Try.Success(var u) -> "OK";
+            case Try.Failure(var e) -> "ERR";
+        };
+        assertEquals("OK", s);
+        assertEquals(1, ref.get());
+    }
+
+    @Test
+    void run_propagates_exceptions_as_failure() {
+        Try<Unit> t = Try.run(() -> { throw new java.io.IOException("x"); });
+        String s = switch (t) {
+            case Try.Success(var u) -> "OK";
+            case Try.Failure(var e) -> e.getClass().getSimpleName();
+        };
+        assertEquals("IOException", s);
+    }
 }

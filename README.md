@@ -147,6 +147,7 @@ Option<String>  errOpt = res.toOptionFailure();
 ### Try
 ```java
 import com.github.rshindo.jfunc.Try;
+import com.github.rshindo.jfunc.Unit;
 
 Try<Integer> t = Try.of(() -> Integer.parseInt("123"));
 Try<Integer> u = Try.of(() -> Integer.parseInt("not-a-number"));
@@ -165,6 +166,13 @@ Either<Throwable,Integer> te = t.toEither();
 Result<Integer,Throwable> tr = u.toResult();
 Option<Integer> tOk = t.toOptionSuccess();
 Option<Throwable> tNg = u.toOptionFailure();
+
+// Void-like side effects via Unit
+Try<Unit> run = Try.run(() -> doSideEffect());
+switch (run) {
+    case Try.Success(var u2) -> System.out.println("done");
+    case Try.Failure(var e2) -> System.err.println("failed: " + e2.getMessage());
+}
 ```
 
 Hint: Try.of + try-with-resources

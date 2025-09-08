@@ -20,16 +20,27 @@ public sealed interface Try<T> {
 	/**
 	 * Functional interface that allows throwing checked exceptions.
 	 */
-	@FunctionalInterface
-	interface CheckedSupplier<T> {
-		/**
-		 * Supplies a value and may throw a checked exception.
-		 *
-		 * @return supplied value
-		 * @throws Exception if a computation error occurs
-		 */
-		T get() throws Exception;
-	}
+    @FunctionalInterface
+    interface CheckedSupplier<T> {
+        /**
+         * Supplies a value and may throw a checked exception.
+         *
+         * @return supplied value
+         * @throws Exception if a computation error occurs
+         */
+        T get() throws Exception;
+    }
+
+    /** A runnable that may throw a checked exception. */
+    @FunctionalInterface
+    interface CheckedRunnable {
+        /**
+         * Executes a side-effect and may throw a checked exception.
+         *
+         * @throws Exception if a computation error occurs
+         */
+        void run() throws Exception;
+    }
 
 	/**
 	 * Creates a {@link Success} with the given non-null value.
@@ -70,17 +81,34 @@ public sealed interface Try<T> {
 	 * @return {@link Success} when the supplier returns normally; otherwise {@link Failure}
 	 * @throws IllegalArgumentException if {@code supplier} is {@code null}
 	 */
-	static <T> Try<T> of(CheckedSupplier<? extends T> supplier) {
-		if (supplier == null) {
-			throw new IllegalArgumentException("supplier must not be null");
-		}
-		try {
-			T v = supplier.get();
-			return Try.success(v);
-		} catch (Throwable t) {
-			return Try.failure(t);
-		}
-	}
+    static <T> Try<T> of(CheckedSupplier<? extends T> supplier) {
+        if (supplier == null) {
+            throw new IllegalArgumentException("supplier must not be null");
+        }
+        try {
+            T v = supplier.get();
+            return Try.success(v);
+        } catch (Throwable t) {
+            return Try.failure(t);
+        }
+    }
+
+    /**
+     * Executes the runnable and returns a {@link Try} of {@link Unit}.
+     *
+     * @param runnable side-effect that may throw
+     * @return {@code Success(Unit.INSTANCE)} if the runnable completes; otherwise {@code Failure}
+     * @throws IllegalArgumentException if {@code runnable} is {@code null}
+     */
+    static Try<Unit> run(CheckedRunnable runnable) {
+        if (runnable == null) {
+            throw new IllegalArgumentException("runnable must not be null");
+        }
+        return Try.of(() -> {
+            runnable.run();
+            return Unit.INSTANCE;
+        });
+    }
 
 	/**
 	 * Maps the success value; failures propagate unchanged.
