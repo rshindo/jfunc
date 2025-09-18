@@ -20,8 +20,13 @@
     <developers>
         <developer>
             <name>Ryo Shindo</name>
+            <email>rshindo.dev@gmail.com</email>
         </developer>
     </developers>
+    <scm>
+        <url>https://github.com/rshindo/jfunc</url>
+        <connection>scm:git:git://github.com/rshindo/jfunc.git</connection>
+    </scm>
 
     <properties>
         <java.version>21</java.version>
@@ -52,7 +57,106 @@
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
+            <!-- Attach sources.jar for Maven Central publication -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Attach javadoc.jar for publication -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <source>${java.version}</source>
+                </configuration>
+            </plugin>
+            <!-- Sign artifacts during the verify phase -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Read passphrase from ~/.m2/settings.xml server with id 'gpg' -->
+                            <passphraseServerId>gpg</passphraseServerId>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Explicit deploy plugin version (publishes to distributionManagement) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Activate with -Pcentral-publish to deploy to Maven Central via Central Portal -->
+        <profile>
+            <id>central-publish</id>
+            <build>
+                <plugins>
+                    <!-- Skip the default maven-deploy step when publishing via Central Portal -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.8.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <!-- Credentials server id in ~/.m2/settings.xml -->
+                            <publishingServerId>central</publishingServerId>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>publish-to-central</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>publish</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
