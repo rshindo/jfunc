@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.rshindo</groupId>
+    <groupId>io.github.rshindo</groupId>
     <artifactId>jfunc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <description>Utilities for functional programming.</description>
