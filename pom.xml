@@ -7,6 +7,7 @@
     <groupId>io.github.rshindo</groupId>
     <artifactId>jfunc</artifactId>
     <version>0.0.1</version>
+    <name>jfunc</name>
     <description>Utilities for functional programming.</description>
 
     <licenses>
