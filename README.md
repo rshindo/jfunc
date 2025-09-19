@@ -33,7 +33,7 @@ Maven:
 <dependency>
   <groupId>com.github.rshindo</groupId>
   <artifactId>jfunc</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 </dependency>
 ```
 
