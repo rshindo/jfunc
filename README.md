@@ -31,9 +31,9 @@ Maven:
 
 ```xml
 <dependency>
-  <groupId>com.github.rshindo</groupId>
+  <groupId>io.github.rshindo</groupId>
   <artifactId>jfunc</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
 </dependency>
 ```
 
@@ -41,7 +41,7 @@ Gradle (Kotlin DSL):
 
 ```kts
 dependencies {
-  implementation("com.github.rshindo:jfunc:0.0.1-SNAPSHOT")
+  implementation("io.github.rshindo:jfunc:0.0.2")
 }
 ```
 
