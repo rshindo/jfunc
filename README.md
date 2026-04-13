@@ -223,4 +223,7 @@ count.onSuccess(c -> System.out.println("lines: " + c))
 ## Development
 - Run tests: `mvn test`
 - Test framework: JUnit Jupiter 5 via Maven Surefire
+- CI: GitHub Actions runs `mvn test` on `push` and `pull_request`
+- Release: pushing a `v<project.version>` tag publishes to Maven Central via GitHub Actions
+- Required release secrets: `CENTRAL_USERNAME`, `CENTRAL_PASSWORD`, `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE`
 - See also: `AGENTS.md` for working guidelines and API design policies

@@ -67,6 +67,43 @@ class ResultTest {
     }
 
     @Test
+    void tee_onSuccess_runsSideEffect_and_returnsSameResult() {
+        AtomicReference<String> ref = new AtomicReference<>();
+        Result<Integer, String> result = Result.success(7);
+
+        Result<Integer, String> returned = result.tee(v -> ref.set("OK" + v));
+
+        assertEquals("OK7", ref.get());
+        assertSame(result, returned);
+    }
+
+    @Test
+    void tee_onFailure_skipsSideEffect_and_returnsSameResult() {
+        AtomicReference<String> ref = new AtomicReference<>();
+        Result<Integer, String> result = Result.failure("E");
+
+        Result<Integer, String> returned = result.tee(v -> ref.set("OK" + v));
+
+        assertNull(ref.get());
+        assertSame(result, returned);
+    }
+
+    @Test
+    void tee_allows_chaining_after_sideEffect() {
+        Result<String, String> result = Result.<Integer, String>success(3)
+                .tee(v -> { })
+                .map(v -> "v=" + (v + 1));
+
+        assertEquals(new Result.Success<String, String>("v=4"), result);
+    }
+
+    @Test
+    void tee_disallowsNullConsumer_onBothSides() {
+        assertThrows(NullPointerException.class, () -> Result.<Integer, String>success(1).tee(null));
+        assertThrows(NullPointerException.class, () -> Result.<Integer, String>failure("E").tee(null));
+    }
+
+    @Test
     void toOption_convertsEachSide() {
         assertEquals(Option.some(1), Result.<Integer, String>success(1).toOptionSuccess());
         assertEquals(Option.none(), Result.<Integer, String>success(1).toOptionFailure());

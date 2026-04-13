@@ -2,6 +2,7 @@ package com.github.rshindo.jfunc;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.Objects;
 
 /**
  * Result type for Railway Oriented Programming (ROP).
@@ -9,7 +10,7 @@ import java.util.function.Function;
  * <p>
  * Design principles:
  * - Minimal API: prefer Java pattern matching over helpers; no fold-like methods are provided.
- * - Variant-oriented naming: {@link #onSuccess(Consumer)} / {@link #onFailure(Consumer)}.
+ * - Variant-oriented naming: {@link #onSuccess(Consumer)} / {@link #onFailure(Consumer)} / {@link #tee(Consumer)}.
  * - Nulls are not allowed for values or mapper results; factory methods reject null inputs.
  * </p>
  * <p>
@@ -101,6 +102,15 @@ public sealed interface Result<T, E> {
 	void onFailure(Consumer<? super E> consumer);
 
 	/**
+	 * Executes the consumer only when this is a {@link Success}, then returns this result.
+	 *
+	 * @param consumer side-effect to execute with the success value
+	 * @return this {@link Result}
+	 * @throws NullPointerException if {@code consumer} is {@code null}
+	 */
+	Result<T, E> tee(Consumer<? super T> consumer);
+
+	/**
 	 * Converts the success value to {@link Option}.
 	 *
 	 * @return {@code Option.some(value)} for {@link Success}; otherwise {@code Option.none()}
@@ -152,6 +162,13 @@ public sealed interface Result<T, E> {
 		public void onFailure(Consumer<? super E> consumer) { /* no-op */ }
 
 		@Override
+		public Result<T, E> tee(Consumer<? super T> consumer) {
+			Objects.requireNonNull(consumer);
+			consumer.accept(value);
+			return this;
+		}
+
+		@Override
 		public Option<T> toOptionSuccess() {
 			return Option.some(value);
 		}
@@ -197,6 +214,12 @@ public sealed interface Result<T, E> {
 		@Override
 		public void onFailure(Consumer<? super E> consumer) {
 			consumer.accept(error);
+		}
+
+		@Override
+		public Result<T, E> tee(Consumer<? super T> consumer) {
+			Objects.requireNonNull(consumer);
+			return this;
 		}
 
 		@Override
