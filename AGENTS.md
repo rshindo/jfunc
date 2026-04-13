@@ -13,7 +13,7 @@
 
 ## ビルド/環境
 - ビルド: Maven 使用。Jupiter は `test` スコープで追加済み、Surefire 3.2.x で実行。
-- JDK: 現在の `pom.xml` は `maven.compiler.source/target = 24`。実行環境が 21 の場合は JDK を合わせるか、必要に応じて `21` に揃える（変更前に相談）。
+- JDK: 現在の `pom.xml` は `maven.compiler.source/target = 21`。ローカル・GitHub Actions ともに Java 21 を前提とする。
 - コマンド例:
   - テスト: `mvn test`
   - バージョン確認: `java -version`, `mvn -version`
@@ -51,9 +51,15 @@
 - `null` 入力や端境ケース（空/境界値）もテストする。
 
 ## 禁止・控えること
-- CI は導入しない（現時点の方針）。ローカルでのテスト実行を徹底する。
+- ローカルでの `mvn test` 実行は必須。加えて GitHub Actions の CI 結果も確認する。
 - `None` のシングルトン化は現状行わない（必要になれば再検討）。
 - Java バージョンの変更、依存追加/更新は影響を確認し、事前に合意を取る。
+
+## GitHub Actions 運用
+- CI: `.github/workflows/ci.yml` で `push` / `pull_request` 時に Java 21 で `mvn test` を実行する。
+- Release: `.github/workflows/release.yml` で `v*` タグ push 時に Maven Central 公開を実行する。
+- リリースタグ: `v<project.version>` 形式を必須とし、`pom.xml` の `<version>` と一致しないタグは失敗させる。
+- Secrets: `CENTRAL_USERNAME`, `CENTRAL_PASSWORD`, `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE` を GitHub Secrets に設定する。
 
 ## 参考ファイル
 - 実装: `src/main/java/com/github/rshindo/jfunc/Option.java`
