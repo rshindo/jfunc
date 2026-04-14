@@ -125,6 +125,13 @@ public sealed interface Result<T, E> {
 	Option<E> toOptionFailure();
 
 	/**
+	 * この値を {@link Either} に変換します。
+	 *
+	 * @return {@link Success} は {@code Either.right(value)}、{@link Failure} は {@code Either.left(error)}
+	 */
+	Either<E, T> toEither();
+
+	/**
 	 * Variant representing success. Carries a non-null success value.
 	 */
 	record Success<T, E>(T value) implements Result<T, E> {
@@ -176,6 +183,11 @@ public sealed interface Result<T, E> {
 		@Override
 		public Option<E> toOptionFailure() {
 			return Option.none();
+		}
+
+		@Override
+		public Either<E, T> toEither() {
+			return Either.right(value);
 		}
 	}
 
@@ -230,6 +242,11 @@ public sealed interface Result<T, E> {
 		@Override
 		public Option<E> toOptionFailure() {
 			return Option.some(error);
+		}
+
+		@Override
+		public Either<E, T> toEither() {
+			return Either.left(error);
 		}
 	}
 }

@@ -10,10 +10,10 @@ A tiny, typed functional utilities library for Java. Sealed, Java‑friendly sum
   - Null policy: `some(null)` throws; `map` returning `null` becomes `None`
 - `Either<L,R>`: `Left`/`Right` disjoint union
   - Right‑biased: `map`, `flatMap` operate on `Right`; `mapLeft`/`ifLeft` for `Left`
-  - Utilities: `swap()`, `toOptionRight()`, `toOptionLeft()`
+  - Utilities: `swap()`, `toOptionRight()`, `toOptionLeft()`, `toResult()`
 - `Result<T,E>`: Success/Failure for Railway Oriented Programming (ROP)
   - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`onFailure` for failures
-  - Interop: `toOptionSuccess()`, `toOptionFailure()`
+  - Interop: `toOptionSuccess()`, `toOptionFailure()`, `toEither()`
   - Minimal API: prefer switch pattern matching over helpers
 - `Try<T>`: Success/Failure for computations that may throw
   - Construct: `Try.of(CheckedSupplier)` to capture exceptions as `Failure`
@@ -106,6 +106,7 @@ String lab = switch (e) {
 // Option conversions
 Option<Integer> rightOpt = e.toOptionRight();
 Option<String>  leftOpt  = e.toOptionLeft();
+Result<Integer, String> result = e.toResult();
 ```
 
 ### Result (ROP)
@@ -142,6 +143,7 @@ String msg = switch (res) {
 // Option conversions
 Option<Integer> okOpt  = res.toOptionSuccess();
 Option<String>  errOpt = res.toOptionFailure();
+Either<String, Integer> either = res.toEither();
 ```
 
 ### Try
@@ -217,6 +219,9 @@ count.onSuccess(c -> System.out.println("lines: " + c))
   - `Either` and `Result` are right‑biased: `map`/`flatMap` act on `Right`/`Success`.
   - Use `mapLeft` (Either) or `mapFailure` (Result) for the left/failure path.
   - `Try` is right‑biased: `map`/`flatMap` act on `Success`; use `onFailure` for side-effects.
+- Conversion policy:
+  - Preserving conversions: `Either.toResult()`, `Result.toEither()`, `Try.toEither()`, `Try.toResult()`.
+  - Reducing conversions: `Either.toOptionRight()`, `Either.toOptionLeft()`, `Result.toOptionSuccess()`, `Result.toOptionFailure()`, `Try.toOptionSuccess()`, `Try.toOptionFailure()`.
 - Equality: record value equality; distinct `None` instances compare equal.
 - No `None` singleton: `Option.none()` returns a new instance by design.
 

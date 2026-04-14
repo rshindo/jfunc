@@ -81,6 +81,24 @@ class EitherTest {
     }
 
     @Test
+    void toResult_onRight_becomesSuccess() {
+        Either<String, Integer> either = Either.right(42);
+
+        Result<Integer, String> result = either.toResult();
+
+        assertEquals(Result.success(42), result);
+    }
+
+    @Test
+    void toResult_onLeft_becomesFailure() {
+        Either<String, Integer> either = Either.left("bad");
+
+        Result<Integer, String> result = either.toResult();
+
+        assertEquals(Result.failure("bad"), result);
+    }
+
+    @Test
     void constructors_disallowNullValues() {
         assertThrows(IllegalArgumentException.class, () -> Either.right(null));
         assertThrows(IllegalArgumentException.class, () -> Either.left(null));

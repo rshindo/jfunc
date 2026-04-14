@@ -1,0 +1,35 @@
+# AI生成コードレビュー
+
+## 結果: REJECT
+
+## サマリー
+`Either#toResult()` と `Result#toEither()` の追加自体は妥当ですが、追加した公開 API の Javadoc が作業指示の日本語ルールに反しており差し戻しです。
+
+## 検証した項目
+| 観点 | 結果 | 備考 |
+|------|------|------|
+| 仮定の妥当性 | ✅ | `Either <-> Result` の追加は task/order.md の優先候補と一致 |
+| API/ライブラリの実在 | ✅ | `Result.success/failure`、`Either.left/right` は既存実装として実在 |
+| コンテキスト適合 | ❌ | 追加した公開 API の Javadoc が日本語運用ルールに不一致 |
+| スコープ | ✅ | 変更は `Either`/`Result`/対応テスト/README に限定され、過剰実装なし |
+
+## 今回の指摘（new）
+| # | finding_id | family_tag | カテゴリ | 場所 | 問題 | 修正案 |
+|---|------------|------------|---------|------|------|--------|
+| 1 | AI-NEW-javadoc-language-either-result | context-mismatch | コンテキスト不整合 | `src/main/java/com/github/rshindo/jfunc/Either.java:120`, `src/main/java/com/github/rshindo/jfunc/Result.java:127` | 追加した公開 API `toResult()` / `toEither()` の Javadoc が英語。`AGENTS.md` の「Javadoc は日本語で要点を簡潔に。公開メソッド/型に付与する」に反している。AI が既存ファイルの文体を優先し、タスク固有ルールを落としたパターン。 | 追加した 2 メソッドの Javadoc を日本語に置き換える。要点のみを簡潔に書き、返却対応関係（`Right -> success`, `Left -> failure` / `Success -> right`, `Failure -> left`）を明記する。 |
+
+## 継続指摘（persists）
+| # | finding_id | family_tag | 前回根拠 | 今回根拠 | 問題 | 修正案 |
+|---|------------|------------|----------|----------|------|--------|
+
+## 解消済み（resolved）
+| finding_id | 解消根拠 |
+|------------|----------|
+
+## 再開指摘（reopened）
+| # | finding_id | family_tag | 解消根拠（前回） | 再発根拠 | 問題 | 修正案 |
+|---|------------|------------|----------------|---------|------|--------|
+
+## REJECT判定条件
+- `new`、`persists`、または `reopened` が1件以上ある場合のみ REJECT 可
+- `finding_id` なしの指摘は無効
