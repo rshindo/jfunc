@@ -1,5 +1,7 @@
 package com.github.rshindo.jfunc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.Objects;
@@ -57,6 +59,77 @@ public sealed interface Result<T, E> {
 			throw new IllegalArgumentException("error must not be null");
 		}
 		return new Failure<>(error);
+	}
+
+	/**
+	 * Combines multiple {@link Result} values into a single {@link Result}.
+	 *
+	 * @param results the input {@link Result} values
+	 * @param <T>     the success value type
+	 * @param <E>     the failure value type
+	 * @return {@code Success(List<T>)} when all elements are {@link Success}; otherwise the first {@link Failure}
+	 * @throws IllegalArgumentException if {@code results} is {@code null} or contains {@code null} elements
+	 */
+	static <T, E> Result<List<T>, E> sequence(Iterable<Result<T, E>> results) {
+		if (results == null) {
+			throw new IllegalArgumentException("results must not be null");
+		}
+
+		List<T> values = new ArrayList<>();
+		for (Result<T, E> result : results) {
+			if (result == null) {
+				throw new IllegalArgumentException("results must not contain null");
+			}
+
+			switch (result) {
+				case Success(var value) -> values.add(value);
+				case Failure(var error) -> {
+					return Result.failure(error);
+				}
+			}
+		}
+		return Result.success(List.copyOf(values));
+	}
+
+	/**
+	 * Maps each element to a {@link Result} and combines the results into a single {@link Result}.
+	 *
+	 * @param values the input values
+	 * @param mapper the function that maps each value to a {@link Result}
+	 * @param <T>    the input type
+	 * @param <U>    the success value type
+	 * @param <E>    the failure value type
+	 * @return {@code Success(List<U>)} when all mapped elements are {@link Success}; otherwise the first {@link Failure}
+	 * @throws IllegalArgumentException if {@code values} is {@code null}, contains {@code null}, if
+	 *                                  {@code mapper} is {@code null}, or if the mapper returns {@code null}
+	 */
+	static <T, U, E> Result<List<U>, E> traverse(Iterable<T> values, Function<? super T, Result<U, E>> mapper) {
+		if (values == null) {
+			throw new IllegalArgumentException("values must not be null");
+		}
+		if (mapper == null) {
+			throw new IllegalArgumentException("mapper must not be null");
+		}
+
+		List<U> mappedValues = new ArrayList<>();
+		for (T value : values) {
+			if (value == null) {
+				throw new IllegalArgumentException("values must not contain null");
+			}
+
+			Result<U, E> mapped = mapper.apply(value);
+			if (mapped == null) {
+				throw new IllegalArgumentException("mapper must not return null");
+			}
+
+			switch (mapped) {
+				case Success(var successValue) -> mappedValues.add(successValue);
+				case Failure(var error) -> {
+					return Result.failure(error);
+				}
+			}
+		}
+		return Result.success(List.copyOf(mappedValues));
 	}
 
 	/**

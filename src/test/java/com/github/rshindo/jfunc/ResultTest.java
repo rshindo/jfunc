@@ -2,6 +2,7 @@ package com.github.rshindo.jfunc;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -153,5 +154,135 @@ class ResultTest {
             case Result.Failure(var e) -> "ERR:" + e;
         };
         assertEquals("ERR:nope", sb);
+    }
+
+    @Test
+    void sequence_onEmptyIterable_returnsSuccessOfEmptyList() {
+        Result<List<Integer>, String> sequenced = Result.sequence(List.of());
+
+        assertEquals(Result.success(List.of()), sequenced);
+    }
+
+    @Test
+    void sequence_onAllSuccess_collectsValues() {
+        Result<List<Integer>, String> sequenced = Result.sequence(List.of(
+                Result.success(1),
+                Result.success(2),
+                Result.success(3)
+        ));
+
+        assertEquals(Result.success(List.of(1, 2, 3)), sequenced);
+    }
+
+    @Test
+    void sequence_onFirstFailure_returnsThatFailure() {
+        Result<List<Integer>, String> sequenced = Result.sequence(List.of(
+                Result.success(1),
+                Result.failure("bad"),
+                Result.failure("later")
+        ));
+
+        assertEquals(Result.failure("bad"), sequenced);
+    }
+
+    @Test
+    void sequence_shortCircuitsAfterFirstFailure() {
+        AtomicReference<String> trace = new AtomicReference<>("start");
+        Iterable<Result<Integer, String>> results = () -> List.<Result<Integer, String>>of(
+                Result.success(1),
+                Result.failure("bad"),
+                Result.success(3)
+        ).stream().map(result -> {
+            if (result.equals(Result.success(3))) {
+                trace.set("visited-third");
+            }
+            return result;
+        }).iterator();
+
+        Result<List<Integer>, String> sequenced = Result.sequence(results);
+
+        assertEquals(Result.failure("bad"), sequenced);
+        assertEquals("start", trace.get());
+    }
+
+    @Test
+    void sequence_withNullIterable_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.<Integer, String>sequence(null));
+    }
+
+    @Test
+    void sequence_withNullElement_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.sequence(java.util.Arrays.asList(
+                Result.success(1),
+                null
+        )));
+    }
+
+    @Test
+    void traverse_onEmptyIterable_returnsSuccessOfEmptyList() {
+        Result<List<Integer>, String> traversed = Result.traverse(List.<String>of(), value -> Result.success(value.length()));
+
+        assertEquals(Result.success(List.of()), traversed);
+    }
+
+    @Test
+    void traverse_onAllSuccess_collectsMappedValues() {
+        Result<List<Integer>, String> traversed = Result.traverse(
+                List.of("a", "bb", "ccc"),
+                value -> Result.success(value.length())
+        );
+
+        assertEquals(Result.success(List.of(1, 2, 3)), traversed);
+    }
+
+    @Test
+    void traverse_onFirstFailure_returnsThatFailure() {
+        Result<List<Integer>, String> traversed = Result.traverse(
+                List.of("10", "oops", "30"),
+                value -> value.matches("\\d+") ? Result.success(Integer.parseInt(value)) : Result.failure("not a number: " + value)
+        );
+
+        assertEquals(Result.failure("not a number: oops"), traversed);
+    }
+
+    @Test
+    void traverse_shortCircuitsAfterFirstFailure() {
+        AtomicReference<String> trace = new AtomicReference<>("start");
+
+        Result<List<Integer>, String> traversed = Result.traverse(List.of("10", "oops", "30"), value -> {
+            if (value.equals("oops")) {
+                return Result.failure("not a number: " + value);
+            }
+            if (value.equals("30")) {
+                trace.set("visited-30");
+            }
+            return Result.success(Integer.parseInt(value));
+        });
+
+        assertEquals(Result.failure("not a number: oops"), traversed);
+        assertEquals("start", trace.get());
+    }
+
+    @Test
+    void traverse_withNullIterable_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.<String, Integer, String>traverse(null, value -> Result.success(value.length())));
+    }
+
+    @Test
+    void traverse_withNullElement_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.traverse(
+                java.util.Arrays.asList("ok", null),
+                value -> Result.success(value.length())
+        ));
+    }
+
+    @Test
+    void traverse_withNullMapper_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.traverse(List.of("ok"), null));
+    }
+
+    @Test
+    void traverse_whenMapperReturnsNull_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.traverse(List.of("ok"), value -> null));
     }
 }
