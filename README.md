@@ -24,6 +24,11 @@ A tiny, typed functional utilities library for Java. Sealed, Java‑friendly sum
 - Java 21+ (project currently compiles and runs tests on 21)
 - Maven (for building/testing)
 
+## GitHub Actions
+- `CI` runs `mvn test` on `push` and `pull_request`.
+- `Codex Review` runs on non-draft pull requests from branches in the same repository and posts an automated PR review.
+- Configure the repository secret `OPENAI_API_KEY` to enable `Codex Review`.
+
 ## Install
 Add the dependency to your build. Replace the version as appropriate.
 
