@@ -112,6 +112,12 @@ class ResultTest {
     }
 
     @Test
+    void toEither_convertsEachSide() {
+        assertEquals(Either.right(1), Result.<Integer, String>success(1).toEither());
+        assertEquals(Either.left("x"), Result.<Integer, String>failure("x").toEither());
+    }
+
+    @Test
     void constructors_disallowNull() {
         assertThrows(IllegalArgumentException.class, () -> Result.success(null));
         assertThrows(IllegalArgumentException.class, () -> Result.failure(null));
