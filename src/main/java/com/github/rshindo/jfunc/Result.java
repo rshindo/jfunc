@@ -18,6 +18,7 @@ import java.util.Objects;
  * - Right-biased operations: {@link #map(Function)} and {@link #flatMap(Function)} operate on {@code Success}
  * and propagate {@code Failure} unchanged.
  * - Transform failures with {@link #mapFailure(Function)}.
+ * - Preserve information with {@link #toEither()}.
  * - Convert to {@link Option} via {@link #toOptionSuccess()} / {@link #toOptionFailure()}.
  * </p>
  *
@@ -125,6 +126,13 @@ public sealed interface Result<T, E> {
 	Option<E> toOptionFailure();
 
 	/**
+	 * Converts this value to an {@link Either}.
+	 *
+	 * @return {@code Either.right(value)} for {@link Success}; {@code Either.left(error)} for {@link Failure}
+	 */
+	Either<E, T> toEither();
+
+	/**
 	 * Variant representing success. Carries a non-null success value.
 	 */
 	record Success<T, E>(T value) implements Result<T, E> {
@@ -176,6 +184,11 @@ public sealed interface Result<T, E> {
 		@Override
 		public Option<E> toOptionFailure() {
 			return Option.none();
+		}
+
+		@Override
+		public Either<E, T> toEither() {
+			return Either.right(value);
 		}
 	}
 
@@ -230,6 +243,11 @@ public sealed interface Result<T, E> {
 		@Override
 		public Option<E> toOptionFailure() {
 			return Option.some(error);
+		}
+
+		@Override
+		public Either<E, T> toEither() {
+			return Either.left(error);
 		}
 	}
 }

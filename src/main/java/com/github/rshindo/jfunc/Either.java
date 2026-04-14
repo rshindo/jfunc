@@ -118,6 +118,13 @@ public sealed interface Either<L, R> {
 	Option<L> toOptionLeft();
 
 	/**
+	 * Converts this value to a {@link Result}.
+	 *
+	 * @return {@code Result.success(value)} for {@code Right}; {@code Result.failure(value)} for {@code Left}
+	 */
+	Result<R, L> toResult();
+
+	/**
 	 * Left variant.
 	 */
 	record Left<L, R>(L value) implements Either<L, R> {
@@ -169,6 +176,11 @@ public sealed interface Either<L, R> {
 		@Override
 		public Option<L> toOptionLeft() {
 			return Option.some(value);
+		}
+
+		@Override
+		public Result<R, L> toResult() {
+			return Result.failure(value);
 		}
 	}
 
@@ -224,6 +236,11 @@ public sealed interface Either<L, R> {
 		@Override
 		public Option<L> toOptionLeft() {
 			return Option.none();
+		}
+
+		@Override
+		public Result<R, L> toResult() {
+			return Result.success(value);
 		}
 	}
 }

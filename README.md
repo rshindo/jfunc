@@ -106,6 +106,9 @@ String lab = switch (e) {
 // Option conversions
 Option<Integer> rightOpt = e.toOptionRight();
 Option<String>  leftOpt  = e.toOptionLeft();
+
+// Preserve information
+Result<Integer, String> asResult = e.toResult();
 ```
 
 ### Result (ROP)
@@ -142,6 +145,9 @@ String msg = switch (res) {
 // Option conversions
 Option<Integer> okOpt  = res.toOptionSuccess();
 Option<String>  errOpt = res.toOptionFailure();
+
+// Preserve information
+Either<String, Integer> asEither = res.toEither();
 ```
 
 ### Try
@@ -217,6 +223,10 @@ count.onSuccess(c -> System.out.println("lines: " + c))
   - `Either` and `Result` are right‑biased: `map`/`flatMap` act on `Right`/`Success`.
   - Use `mapLeft` (Either) or `mapFailure` (Result) for the left/failure path.
   - `Try` is right‑biased: `map`/`flatMap` act on `Success`; use `onFailure` for side-effects.
+- Conversion policy:
+  - Preserve information: `Either#toResult()`, `Result#toEither()`, `Try#toEither()`, `Try#toResult()`.
+  - Reduce information to presence/absence: `Either#toOptionRight()`, `Either#toOptionLeft()`, `Result#toOptionSuccess()`, `Result#toOptionFailure()`, `Try#toOptionSuccess()`, `Try#toOptionFailure()`.
+  - `Option` is the lossy endpoint in these conversions; reverse conversions are intentionally not provided.
 - Equality: record value equality; distinct `None` instances compare equal.
 - No `None` singleton: `Option.none()` returns a new instance by design.
 
