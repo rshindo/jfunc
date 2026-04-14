@@ -1,0 +1,21 @@
+# タスク完了サマリー
+
+## タスク
+`Option` / `Result` にコレクション連携 API として `sequence` / `traverse` を追加し、空入力・成功・失敗・`null` 契約をテストで定義し、README に利用例を追記するタスクです。
+
+## 結果
+完了
+
+## 変更内容
+| 種別 | ファイル | 概要 |
+|------|---------|------|
+| 変更 | `src/main/java/com/github/rshindo/jfunc/Option.java` | `sequence` / `traverse` を追加し、`None` 短絡と `null` 契約を実装 |
+| 変更 | `src/main/java/com/github/rshindo/jfunc/Result.java` | `sequence` / `traverse` を追加し、最初の `Failure` 短絡と `null` 契約を実装 |
+| 変更 | `src/test/java/com/github/rshindo/jfunc/OptionTest.java` | 空入力・成功・`None`・短絡・`null` 系の回帰テストを追加 |
+| 変更 | `src/test/java/com/github/rshindo/jfunc/ResultTest.java` | 空入力・成功・`Failure`・短絡・`null` 系の回帰テストを追加 |
+| 変更 | `README.md` | `Option.sequence` と `Result.traverse` の利用例を追加 |
+
+## 検証証跡
+- `mvn test` 成功。`BUILD SUCCESS`、`Tests run: 83, Failures: 0, Errors: 0` を確認。
+- 前段 REJECT finding `AI-NEW-option-traverse-contract` は解消済みとして確認。
+- `Option` / `Result` の主要フローは、空入力・成功・失敗・短絡・`null` 契約のテストで確認。

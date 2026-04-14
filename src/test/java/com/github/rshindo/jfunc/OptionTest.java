@@ -114,4 +114,134 @@ class OptionTest {
     void stream_onNone_isEmpty() {
         assertEquals(List.of(), Option.<Integer>none().stream().toList());
     }
+
+    @Test
+    void sequence_onEmptyIterable_returnsSomeOfEmptyList() {
+        Option<List<Integer>> sequenced = Option.sequence(List.of());
+
+        assertEquals(Option.some(List.of()), sequenced);
+    }
+
+    @Test
+    void sequence_onAllSome_collectsValues() {
+        Option<List<Integer>> sequenced = Option.sequence(List.of(
+                Option.some(1),
+                Option.some(2),
+                Option.some(3)
+        ));
+
+        assertEquals(Option.some(List.of(1, 2, 3)), sequenced);
+    }
+
+    @Test
+    void sequence_onNone_returnsNone() {
+        Option<List<Integer>> sequenced = Option.sequence(List.of(
+                Option.some(1),
+                Option.none(),
+                Option.some(3)
+        ));
+
+        assertEquals(Option.none(), sequenced);
+    }
+
+    @Test
+    void sequence_shortCircuitsAfterFirstNone() {
+        AtomicReference<String> trace = new AtomicReference<>("start");
+        Iterable<Option<Integer>> options = () -> List.<Option<Integer>>of(
+                Option.some(1),
+                Option.none(),
+                Option.some(3)
+        ).stream().map(option -> {
+            if (option.equals(Option.some(3))) {
+                trace.set("visited-third");
+            }
+            return option;
+        }).iterator();
+
+        Option<List<Integer>> sequenced = Option.sequence(options);
+
+        assertEquals(Option.none(), sequenced);
+        assertEquals("start", trace.get());
+    }
+
+    @Test
+    void sequence_withNullIterable_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Option.<Integer>sequence(null));
+    }
+
+    @Test
+    void sequence_withNullElement_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Option.sequence(java.util.Arrays.asList(
+                Option.some(1),
+                null
+        )));
+    }
+
+    @Test
+    void traverse_onEmptyIterable_returnsSomeOfEmptyList() {
+        Option<List<Integer>> traversed = Option.traverse(List.<String>of(), value -> Option.some(value.length()));
+
+        assertEquals(Option.some(List.of()), traversed);
+    }
+
+    @Test
+    void traverse_onAllSome_collectsMappedValues() {
+        Option<List<Integer>> traversed = Option.traverse(
+                List.of("a", "bb", "ccc"),
+                value -> Option.some(value.length())
+        );
+
+        assertEquals(Option.some(List.of(1, 2, 3)), traversed);
+    }
+
+    @Test
+    void traverse_whenMapperReturnsNone_returnsNone() {
+        Option<List<Integer>> traversed = Option.traverse(
+                List.of("ok", "", "later"),
+                value -> value.isEmpty() ? Option.none() : Option.some(value.length())
+        );
+
+        assertEquals(Option.none(), traversed);
+    }
+
+    @Test
+    void traverse_shortCircuitsAfterFirstNone() {
+        AtomicReference<String> trace = new AtomicReference<>("start");
+
+        Option<List<Integer>> traversed = Option.traverse(List.of("ok", "", "later"), value -> {
+            if (value.isEmpty()) {
+                return Option.none();
+            }
+            if (value.equals("later")) {
+                trace.set("visited-later");
+            }
+            return Option.some(value.length());
+        });
+
+        assertEquals(Option.none(), traversed);
+        assertEquals("start", trace.get());
+    }
+
+    @Test
+    void traverse_withNullIterable_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Option.<String, Integer>traverse(null, value -> Option.some(value.length())));
+    }
+
+    @Test
+    void traverse_withNullElement_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Option.traverse(
+                java.util.Arrays.asList("ok", null),
+                value -> Option.some(value.length())
+        ));
+    }
+
+    @Test
+    void traverse_withNullMapper_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Option.traverse(List.of("ok"), null));
+    }
+
+    @Test
+    void traverse_whenMapperReturnsNull_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Option.traverse(List.of("ok"), value -> null));
+    }
 }

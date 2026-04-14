@@ -1,5 +1,7 @@
 package com.github.rshindo.jfunc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,6 +55,73 @@ public sealed interface Option<T> {
 	 */
 	static <T> Option<T> ofNullable(T value) {
 		return value == null ? Option.none() : Option.some(value);
+	}
+
+	/**
+	 * {@link Option} の反復可能コレクションを 1 つの {@link Option} に畳み込む。
+	 *
+	 * @param options 入力の {@link Option} 群
+	 * @param <T>     値の型
+	 * @return 全要素が {@link Some} なら値を集めた {@code Some(List<T>)}、途中に {@link None} があれば {@code None}
+	 * @throws IllegalArgumentException {@code options} または要素が {@code null} の場合
+	 */
+	static <T> Option<List<T>> sequence(Iterable<Option<T>> options) {
+		if (options == null) {
+			throw new IllegalArgumentException("options must not be null");
+		}
+
+		List<T> values = new ArrayList<>();
+		for (Option<T> option : options) {
+			if (option == null) {
+				throw new IllegalArgumentException("options must not contain null");
+			}
+
+			switch (option) {
+				case Some(var value) -> values.add(value);
+				case None() -> {
+					return Option.none();
+				}
+			}
+		}
+		return Option.some(List.copyOf(values));
+	}
+
+	/**
+	 * 反復可能コレクションの各要素に関数を適用し、結果の {@link Option} を 1 つにまとめる。
+	 *
+	 * @param values 入力値
+	 * @param mapper 各要素を {@link Option} に変換する関数
+	 * @param <T>    入力の型
+	 * @param <R>    出力の型
+	 * @return 全要素が {@link Some} なら値を集めた {@code Some(List<R>)}、途中に {@link None} があれば {@code None}
+	 * @throws IllegalArgumentException {@code values}、要素、{@code mapper}、または mapper の戻り値が {@code null} の場合
+	 */
+	static <T, R> Option<List<R>> traverse(Iterable<T> values, Function<? super T, Option<R>> mapper) {
+		if (values == null) {
+			throw new IllegalArgumentException("values must not be null");
+		}
+		if (mapper == null) {
+			throw new IllegalArgumentException("mapper must not be null");
+		}
+
+		List<R> mappedValues = new ArrayList<>();
+		for (T value : values) {
+			if (value == null) {
+				throw new IllegalArgumentException("values must not contain null");
+			}
+			Option<R> mapped = mapper.apply(value);
+			if (mapped == null) {
+				throw new IllegalArgumentException("mapper must not return null");
+			}
+
+			switch (mapped) {
+				case Some(var mappedValue) -> mappedValues.add(mappedValue);
+				case None() -> {
+					return Option.none();
+				}
+			}
+		}
+		return Option.some(List.copyOf(mappedValues));
 	}
 
 	/**

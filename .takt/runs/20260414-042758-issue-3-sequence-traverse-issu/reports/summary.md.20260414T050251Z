@@ -1,0 +1,22 @@
+# タスク完了サマリー
+
+## タスク
+`Option` / `Result` にコレクション連携 API として `sequence` / `traverse` を追加し、空入力・成功・失敗・`null` 契約をテストで定義し、README に利用例を追記するタスクです。最終検証では、要求充足に加えて実行証跡とレポート整合性を確認しました。
+
+## 結果
+完了
+
+## 変更内容
+| 種別 | ファイル | 概要 |
+|------|---------|------|
+| 変更 | `src/main/java/com/github/rshindo/jfunc/Option.java` | `sequence` / `traverse` を追加し、`None` 短絡と `null` 契約を実装 |
+| 変更 | `src/main/java/com/github/rshindo/jfunc/Result.java` | `sequence` / `traverse` を追加し、最初の `Failure` 短絡と `null` 契約を実装 |
+| 変更 | `src/test/java/com/github/rshindo/jfunc/OptionTest.java` | 空入力・成功・`None`・短絡・`null` 系のテストを追加 |
+| 変更 | `src/test/java/com/github/rshindo/jfunc/ResultTest.java` | 空入力・成功・`Failure`・短絡・`null` 系のテストを追加 |
+| 変更 | `README.md` | `Option.sequence` と `Result.traverse` の利用例を追加 |
+
+## 検証証跡
+- 要件実装自体はコード上で確認済み: `Option.java:68`, `Option.java:99`, `Result.java:61`, `Result.java:93`, `README.md:89`, `README.md:152`
+- Java 21 を明示した `mvn test` を再実行し、Surefire 合計 84 件成功を確認: `target/surefire-reports/com.github.rshindo.jfunc.OptionTest.txt:4`, `target/surefire-reports/com.github.rshindo.jfunc.ResultTest.txt:4`
+- 最新の Surefire XML は Java 21 実行を示す: `target/surefire-reports/TEST-com.github.rshindo.jfunc.OptionTest.xml:4`, `target/surefire-reports/TEST-com.github.rshindo.jfunc.OptionTest.xml:24`, `target/surefire-reports/TEST-com.github.rshindo.jfunc.ResultTest.xml:4`, `target/surefire-reports/TEST-com.github.rshindo.jfunc.ResultTest.xml:24`
+- `mvn test` の最新実行結果は `BUILD SUCCESS`、`Tests run: 84, Failures: 0, Errors: 0, Skipped: 0`

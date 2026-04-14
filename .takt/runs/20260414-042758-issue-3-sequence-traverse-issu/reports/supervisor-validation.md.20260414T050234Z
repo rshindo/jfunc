@@ -1,0 +1,66 @@
+# 最終検証結果
+
+## 結果: APPROVE
+
+## 要件充足チェック
+
+タスク指示書から要件を抽出し、各要件を実コードで個別に検証する。
+
+| # | 分解した要件 | 充足 | 根拠（ファイル:行） |
+|---|------------|------|-------------------|
+| 1 | `Option.sequence(Iterable<Option<T>>): Option<List<T>>` を追加する | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:68` |
+| 2 | `Result.sequence(Iterable<Result<T,E>>): Result<List<T>, E>` を追加する | ✅ | `src/main/java/com/github/rshindo/jfunc/Result.java:61` |
+| 3 | `Option.traverse` を追加する | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:99` |
+| 4 | `Result.traverse` を追加する | ✅ | `src/main/java/com/github/rshindo/jfunc/Result.java:93` |
+| 5 | `Option` は 1 つでも `None` があれば `None` を返す | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:79`, `src/test/java/com/github/rshindo/jfunc/OptionTest.java:137` |
+| 6 | `Result` は最初の `Failure` で失敗する | ✅ | `src/main/java/com/github/rshindo/jfunc/Result.java:72`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:174` |
+| 7 | 入力を `Iterable` に限定する | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:68`, `src/main/java/com/github/rshindo/jfunc/Option.java:99`, `src/main/java/com/github/rshindo/jfunc/Result.java:61`, `src/main/java/com/github/rshindo/jfunc/Result.java:93` |
+| 8 | 出力を `List` に限定する | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:68`, `src/main/java/com/github/rshindo/jfunc/Option.java:99`, `src/main/java/com/github/rshindo/jfunc/Result.java:61`, `src/main/java/com/github/rshindo/jfunc/Result.java:93` |
+| 9 | 空コレクションのケースがテストされている | ✅ | `src/test/java/com/github/rshindo/jfunc/OptionTest.java:119`, `src/test/java/com/github/rshindo/jfunc/OptionTest.java:181`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:156`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:218` |
+| 10 | 全成功のケースがテストされている | ✅ | `src/test/java/com/github/rshindo/jfunc/OptionTest.java:126`, `src/test/java/com/github/rshindo/jfunc/OptionTest.java:188`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:163`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:225` |
+| 11 | 途中失敗のケースがテストされている | ✅ | `src/test/java/com/github/rshindo/jfunc/OptionTest.java:137`, `src/test/java/com/github/rshindo/jfunc/OptionTest.java:198`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:174`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:235` |
+| 12 | `null` iterable の扱いが定義されている | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:69`, `src/main/java/com/github/rshindo/jfunc/Option.java:100`, `src/main/java/com/github/rshindo/jfunc/Result.java:62`, `src/main/java/com/github/rshindo/jfunc/Result.java:94` |
+| 13 | `null` 要素の扱いが定義されている | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:75`, `src/main/java/com/github/rshindo/jfunc/Option.java:109`, `src/main/java/com/github/rshindo/jfunc/Result.java:68`, `src/main/java/com/github/rshindo/jfunc/Result.java:103` |
+| 14 | `null` iterable がテストされている | ✅ | `src/test/java/com/github/rshindo/jfunc/OptionTest.java:168`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:205` |
+| 15 | `null` 要素がテストされている | ✅ | `src/test/java/com/github/rshindo/jfunc/OptionTest.java:173`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:210` |
+| 16 | README に複数入力検証または複数 parse のサンプルがある | ✅ | `README.md:89`, `README.md:152` |
+| 17 | `Validation`、Stream 直接対応、`Try.sequence` / `Try.traverse` を今回追加しない | ✅ | `src/main/java/com/github/rshindo/jfunc/Option.java:177`, `src/main/java/com/github/rshindo/jfunc/Try.java:18` |
+
+## 前段 finding の再評価
+| finding_id | 前段判定 | 再評価 | 根拠 |
+|------------|----------|--------|------|
+| AI-NEW-option-traverse-contract | new | 妥当 | `.takt/runs/20260414-042758-issue-3-sequence-traverse-issu/reports/ai-review.md.20260414T044452Z:19`, `src/main/java/com/github/rshindo/jfunc/Option.java:99` |
+| AI-NEW-option-traverse-contract | resolved | 妥当 | `.takt/runs/20260414-042758-issue-3-sequence-traverse-issu/reports/ai-review.md:29`, `src/test/java/com/github/rshindo/jfunc/OptionTest.java:181` |
+| ARCH-NEW-result-file-over-300 | new | 妥当 | `.takt/runs/20260414-042758-issue-3-sequence-traverse-issu/reports/architect-review.md:14`, `src/main/java/com/github/rshindo/jfunc/Result.java:287`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java:286` |
+
+## 検証サマリー
+| 項目 | 状態 | 確認方法 |
+|------|------|---------|
+| テスト | ✅ | Java 21 で `mvn test` を再実行し、Surefire 集計 `Tests run: 84, Failures: 0, Errors: 0, Skipped: 0` を確認 |
+| ビルド | ✅ | 同一の Java 21 実行で `BUILD SUCCESS` を確認し、Surefire XML でも `java.specification.version=21` と `java.home=/Users/shindo/.sdkman/candidates/java/21.0.6-librca` を確認 |
+| 動作確認 | ✅ | `OptionTest` / `ResultTest` の空入力・成功・失敗・短絡・`null` 契約テストを含む 84 件が Java 21 上で完走 |
+
+## 今回の指摘（new）
+| # | finding_id | 項目 | 根拠 | 理由 | 必要アクション |
+|---|------------|------|------|------|----------------|
+| - | - | - | - | - | - |
+
+## 継続指摘（persists）
+| # | finding_id | 前回根拠 | 今回根拠 | 理由 | 必要アクション |
+|---|------------|----------|----------|------|----------------|
+| - | - | - | - | - | - |
+
+## 解消済み（resolved）
+| finding_id | 解消根拠 |
+|------------|----------|
+| VAL-RESOLVED-no-scope-creep-delete | `git diff --name-status` で `D` がなく、削除差分は確認されなかった |
+| VAL-NEW-report-test-count-mismatch | `summary.md` と `supervisor-validation.md` を Surefire 実行結果 84 件に更新し、`target/surefire-reports/com.github.rshindo.jfunc.OptionTest.txt:4` と `target/surefire-reports/com.github.rshindo.jfunc.ResultTest.txt:4` と整合 |
+| VAL-NEW-java21-ci-evidence-missing | Java 21 で `mvn test` を再実行し、`target/surefire-reports/TEST-com.github.rshindo.jfunc.OptionTest.xml:4`, `target/surefire-reports/TEST-com.github.rshindo.jfunc.OptionTest.xml:24`, `target/surefire-reports/TEST-com.github.rshindo.jfunc.ResultTest.xml:4`, `target/surefire-reports/TEST-com.github.rshindo.jfunc.ResultTest.xml:24` で確認 |
+
+## 成果物
+- 作成: なし
+- 変更: `README.md`, `src/main/java/com/github/rshindo/jfunc/Option.java`, `src/main/java/com/github/rshindo/jfunc/Result.java`, `src/test/java/com/github/rshindo/jfunc/OptionTest.java`, `src/test/java/com/github/rshindo/jfunc/ResultTest.java`
+
+## REJECT判定条件
+- `new` または `persists` が1件以上ある場合のみ REJECT 可
+- `finding_id` なしの指摘は無効

@@ -1,0 +1,38 @@
+# アーキテクチャレビュー
+
+## 結果: REJECT
+
+## サマリー
+`sequence` / `traverse` の責務配置自体は自然ですが、今回の変更で `Result.java` が 306 行となり、このステップの設計基準である「1ファイル300行超は REJECT」に抵触しました。前回 open findings はありません。
+
+## 確認した観点
+- [x] 構造・設計
+- [x] コード品質
+- [x] 変更スコープ
+- [x] テストカバレッジ
+- [x] デッドコード
+- [x] 呼び出しチェーン検証
+
+## 今回の指摘（new）
+| # | finding_id | family_tag | スコープ | 場所 | 問題 | 修正案 |
+|---|------------|------------|---------|------|------|--------|
+| 1 | ARCH-NEW-result-file-over-300 | design-violation | スコープ内 | `src/main/java/com/github/rshindo/jfunc/Result.java:63`, `src/main/java/com/github/rshindo/jfunc/Result.java:306` | `sequence` / `traverse` の追加で `Result.java` が 306 行になり、設計基準の「1ファイル300行超は REJECT」に抵触しています。sealed interface とネスト record を同居させる前提のため、同一ファイルに API を積み増す構造は一覧性と保守性を落とします。 | 公開 API を別 helper に逃がして責務境界を広げるのではなく、まず `Result.java` 自体を 300 行未満に戻してください。現行方針に沿う最小修正は、Javadoc と空行の圧縮、重複説明の整理などで同ファイル内を減量することです。 |
+
+## 継続指摘（persists）
+| # | finding_id | family_tag | 前回根拠 | 今回根拠 | 問題 | 修正案 |
+|---|------------|------------|----------|----------|------|--------|
+| - | - | - | - | - | - | - |
+
+## 解消済み（resolved）
+| finding_id | 解消根拠 |
+|------------|----------|
+| - | - |
+
+## 再開指摘（reopened）
+| # | finding_id | family_tag | 解消根拠（前回） | 再発根拠 | 問題 | 修正案 |
+|---|------------|------------|----------------|---------|------|--------|
+| - | - | - | - | - | - | - |
+
+## REJECT判定条件
+- `new`、`persists`、または `reopened` が1件以上ある場合のみ REJECT 可
+- `finding_id` なしの指摘は無効

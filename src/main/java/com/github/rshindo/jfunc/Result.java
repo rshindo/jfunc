@@ -1,5 +1,7 @@
 package com.github.rshindo.jfunc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.Objects;
@@ -7,19 +9,8 @@ import java.util.Objects;
 /**
  * Result type for Railway Oriented Programming (ROP).
  * Represents either a successful value ({@link Success}) or a failure ({@link Failure}).
- * <p>
- * Design principles:
- * - Minimal API: prefer Java pattern matching over helpers; no fold-like methods are provided.
- * - Variant-oriented naming: {@link #onSuccess(Consumer)} / {@link #onFailure(Consumer)} / {@link #tee(Consumer)}.
- * - Nulls are not allowed for values or mapper results; factory methods reject null inputs.
- * </p>
- * <p>
- * Semantics:
- * - Right-biased operations: {@link #map(Function)} and {@link #flatMap(Function)} operate on {@code Success}
- * and propagate {@code Failure} unchanged.
- * - Transform failures with {@link #mapFailure(Function)}.
- * - Convert to {@link Option} via {@link #toOptionSuccess()} / {@link #toOptionFailure()}.
- * </p>
+ * Minimal API を保ち、{@link #map(Function)} / {@link #flatMap(Function)} は成功値だけを処理し、
+ * {@link #mapFailure(Function)} は失敗値だけを変換する。
  *
  * @param <T> type of the success value
  * @param <E> type of the failure value
@@ -56,6 +47,75 @@ public sealed interface Result<T, E> {
 			throw new IllegalArgumentException("error must not be null");
 		}
 		return new Failure<>(error);
+	}
+
+	/**
+	 * {@link Result} の反復可能コレクションを 1 つの {@link Result} に畳み込む。
+	 *
+	 * @param results 入力の {@link Result} 群
+	 * @param <T>     成功値の型
+	 * @param <E>     失敗値の型
+	 * @return 全要素が {@link Success} なら値を集めた {@code Success(List<T>)}、途中に {@link Failure} があれば最初の失敗
+	 * @throws IllegalArgumentException {@code results} または要素が {@code null} の場合
+	 */
+	static <T, E> Result<List<T>, E> sequence(Iterable<Result<T, E>> results) {
+		if (results == null) {
+			throw new IllegalArgumentException("results must not be null");
+		}
+
+		List<T> values = new ArrayList<>();
+		for (Result<T, E> result : results) {
+			if (result == null) {
+				throw new IllegalArgumentException("results must not contain null");
+			}
+
+			switch (result) {
+				case Success(var value) -> values.add(value);
+				case Failure(var error) -> {
+					return Result.failure(error);
+				}
+			}
+		}
+		return Result.success(List.copyOf(values));
+	}
+
+	/**
+	 * 反復可能コレクションの各要素に関数を適用し、結果の {@link Result} を 1 つにまとめる。
+	 *
+	 * @param values 入力値
+	 * @param mapper 各要素を {@link Result} に変換する関数
+	 * @param <T>    入力の型
+	 * @param <U>    成功値の型
+	 * @param <E>    失敗値の型
+	 * @return 全要素が {@link Success} なら値を集めた {@code Success(List<U>)}、途中に {@link Failure} があれば最初の失敗
+	 * @throws IllegalArgumentException {@code values}、要素、{@code mapper}、または mapper の戻り値が {@code null} の場合
+	 */
+	static <T, U, E> Result<List<U>, E> traverse(Iterable<T> values, Function<? super T, Result<U, E>> mapper) {
+		if (values == null) {
+			throw new IllegalArgumentException("values must not be null");
+		}
+		if (mapper == null) {
+			throw new IllegalArgumentException("mapper must not be null");
+		}
+
+		List<U> mappedValues = new ArrayList<>();
+		for (T value : values) {
+			if (value == null) {
+				throw new IllegalArgumentException("values must not contain null");
+			}
+			Result<U, E> mapped = mapper.apply(value);
+			if (mapped == null) {
+				throw new IllegalArgumentException("mapper must not return null");
+			}
+
+			switch (mapped) {
+				case Success(var successValue) -> mappedValues.add(successValue);
+				case Failure(var error) -> {
+					return Result.failure(error);
+				}
+			}
+		}
+		return Result.success(List.copyOf(mappedValues));
 	}
 
 	/**
@@ -110,18 +170,10 @@ public sealed interface Result<T, E> {
 	 */
 	Result<T, E> tee(Consumer<? super T> consumer);
 
-	/**
-	 * Converts the success value to {@link Option}.
-	 *
-	 * @return {@code Option.some(value)} for {@link Success}; otherwise {@code Option.none()}
-	 */
+	/** @return {@code Option.some(value)} for {@link Success}; otherwise {@code Option.none()} */
 	Option<T> toOptionSuccess();
 
-	/**
-	 * Converts the failure value to {@link Option}.
-	 *
-	 * @return {@code Option.some(error)} for {@link Failure}; otherwise {@code Option.none()}
-	 */
+	/** @return {@code Option.some(error)} for {@link Failure}; otherwise {@code Option.none()} */
 	Option<E> toOptionFailure();
 
 	/**
