@@ -85,6 +85,12 @@ String label = switch (a) {
 // Interop
 java.util.Optional<Integer> opt = a.toOptional();
 Option<Integer> fromOpt = Option.fromOptional(opt);
+
+Option<List<Integer>> allValues = Option.sequence(List.of(
+    Option.some(1),
+    Option.some(2),
+    Option.some(3)
+));
 ```
 
 ### Either
@@ -148,6 +154,17 @@ Option<String>  errOpt = res.toOptionFailure();
 
 // Preserve information
 Either<String, Integer> asEither = res.toEither();
+
+Result<List<Integer>, String> parsed = Result.traverse(
+    List.of("10", "20", "30"),
+    value -> {
+        try {
+            return Result.success(Integer.parseInt(value));
+        } catch (NumberFormatException e) {
+            return Result.failure("nan:" + value);
+        }
+    }
+);
 ```
 
 ### Try

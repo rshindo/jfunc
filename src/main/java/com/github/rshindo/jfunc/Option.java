@@ -1,5 +1,7 @@
 package com.github.rshindo.jfunc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,6 +55,75 @@ public sealed interface Option<T> {
 	 */
 	static <T> Option<T> ofNullable(T value) {
 		return value == null ? Option.none() : Option.some(value);
+	}
+
+	/**
+	 * Combines multiple {@link Option} values into a single {@link Option}.
+	 *
+	 * @param options the input {@link Option} values
+	 * @param <T>     the value type
+	 * @return {@code Some(List<T>)} when all elements are {@link Some}; otherwise {@code None}
+	 * @throws IllegalArgumentException if {@code options} is {@code null} or contains {@code null} elements
+	 */
+	static <T> Option<List<T>> sequence(Iterable<Option<T>> options) {
+		if (options == null) {
+			throw new IllegalArgumentException("options must not be null");
+		}
+
+		List<T> values = new ArrayList<>();
+		for (Option<T> option : options) {
+			if (option == null) {
+				throw new IllegalArgumentException("options must not contain null");
+			}
+
+			switch (option) {
+				case Some(var value) -> values.add(value);
+				case None() -> {
+					return Option.none();
+				}
+			}
+		}
+		return Option.some(List.copyOf(values));
+	}
+
+	/**
+	 * Maps each element to an {@link Option} and combines the results into a single {@link Option}.
+	 *
+	 * @param values the input values
+	 * @param mapper the function that maps each value to an {@link Option}
+	 * @param <T>    the input type
+	 * @param <R>    the output type
+	 * @return {@code Some(List<R>)} when all mapped elements are {@link Some}; otherwise {@code None}
+	 * @throws IllegalArgumentException if {@code values} is {@code null}, contains {@code null}, if
+	 *                                  {@code mapper} is {@code null}, or if the mapper returns {@code null}
+	 */
+	static <T, R> Option<List<R>> traverse(Iterable<T> values, Function<? super T, Option<R>> mapper) {
+		if (values == null) {
+			throw new IllegalArgumentException("values must not be null");
+		}
+		if (mapper == null) {
+			throw new IllegalArgumentException("mapper must not be null");
+		}
+
+		List<R> mappedValues = new ArrayList<>();
+		for (T value : values) {
+			if (value == null) {
+				throw new IllegalArgumentException("values must not contain null");
+			}
+
+			Option<R> mapped = mapper.apply(value);
+			if (mapped == null) {
+				throw new IllegalArgumentException("mapper must not return null");
+			}
+
+			switch (mapped) {
+				case Some(var mappedValue) -> mappedValues.add(mappedValue);
+				case None() -> {
+					return Option.none();
+				}
+			}
+		}
+		return Option.some(List.copyOf(mappedValues));
 	}
 
 	/**
