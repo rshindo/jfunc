@@ -1,0 +1,7 @@
+# アーキテクチャレビュー
+
+## 結果: APPROVE
+
+## サマリー
+前回 open finding `AI-NEW-javadoc-language-recover` は `resolved` です。`recover` / `recoverWith` の追加は `Try` / `Result` の既存責務境界と右バイアス設計を崩しておらず、新規の `new` / `persists` / `reopened` はありません。  
+テストは `Success` / `Failure` の両経路と `null` 系境界値をカバーしており、`mvn test` 73件成功も確認しました。

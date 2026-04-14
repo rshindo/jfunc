@@ -47,6 +47,93 @@ class TryTest {
     }
 
     @Test
+    void recover_onSuccess_returnsSameInstance_withoutEvaluatingMapper() {
+        AtomicReference<String> ref = new AtomicReference<>();
+        Try<Integer> success = Try.success(10);
+
+        Try<Integer> recovered = success.recover(error -> {
+            ref.set("called");
+            return 20;
+        });
+
+        assertSame(success, recovered);
+        assertNull(ref.get());
+    }
+
+    @Test
+    void recover_onFailure_transformsToSuccess() {
+        IOException error = new IOException("io");
+        Try<Integer> failure = Try.failure(error);
+
+        Try<Integer> recovered = failure.recover(throwable -> throwable.getMessage().length());
+
+        assertEquals(new Try.Success<>(2), recovered);
+    }
+
+    @Test
+    void recover_onFailure_withNullMapper_throwsNullPointerException() {
+        Try<Integer> failure = Try.failure(new IOException("io"));
+
+        assertThrows(NullPointerException.class, () -> failure.recover(null));
+    }
+
+    @Test
+    void recover_onFailure_withNullResult_throwsIllegalArgumentException() {
+        Try<Integer> failure = Try.failure(new IOException("io"));
+
+        assertThrows(IllegalArgumentException.class, () -> failure.recover(error -> null));
+    }
+
+    @Test
+    void recoverWith_onSuccess_returnsSameInstance_withoutEvaluatingMapper() {
+        AtomicReference<String> ref = new AtomicReference<>();
+        Try<Integer> success = Try.success(10);
+
+        Try<Integer> recovered = success.recoverWith(error -> {
+            ref.set("called");
+            return Try.success(20);
+        });
+
+        assertSame(success, recovered);
+        assertNull(ref.get());
+    }
+
+    @Test
+    void recoverWith_onFailure_canReturnSuccess() {
+        IOException error = new IOException("io");
+        Try<Integer> failure = Try.failure(error);
+
+        Try<Integer> recovered = failure.recoverWith(throwable -> Try.success(throwable.getMessage().length()));
+
+        assertEquals(new Try.Success<>(2), recovered);
+    }
+
+    @Test
+    void recoverWith_onFailure_canReturnFailure() {
+        IOException error = new IOException("io");
+        Try<Integer> failure = Try.failure(error);
+
+        Try<Integer> recovered = failure.recoverWith(throwable -> Try.failure(new IllegalStateException("wrapped:" + throwable.getMessage())));
+
+        assertTrue(recovered instanceof Try.Failure<?>);
+        assertEquals("wrapped:io", ((Try.Failure<?>) recovered).error().getMessage());
+    }
+
+    @Test
+    void recoverWith_onFailure_withNullMapper_throwsNullPointerException() {
+        Try<Integer> failure = Try.failure(new IOException("io"));
+
+        assertThrows(NullPointerException.class, () -> failure.recoverWith(null));
+    }
+
+    @Test
+    void recoverWith_onFailure_withNullResult_throwsIllegalArgumentException() {
+        Try<Integer> failure = Try.failure(new IOException("io"));
+
+        assertThrows(IllegalArgumentException.class, () -> failure.recoverWith(error -> null));
+    }
+
+    @Test
     void onSuccess_onFailure_sideEffects() {
         AtomicReference<String> ref = new AtomicReference<>();
 

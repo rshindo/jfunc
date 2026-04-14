@@ -1,0 +1,15 @@
+{
+  "task": "Implement using only the files in `.takt/runs/20260414-042835-issue-4-try-result-api-issue-t/context/task`.\nPrimary spec: `.takt/runs/20260414-042835-issue-4-try-result-api-issue-t/context/task/order.md`.\nUse report files in Report Directory as primary execution history.\nDo not rely on previous response or conversation summary.",
+  "piece": "default",
+  "runSlug": "20260414-042835-issue-4-try-result-api-issue-t",
+  "runRoot": ".takt/runs/20260414-042835-issue-4-try-result-api-issue-t",
+  "reportDirectory": ".takt/runs/20260414-042835-issue-4-try-result-api-issue-t/reports",
+  "contextDirectory": ".takt/runs/20260414-042835-issue-4-try-result-api-issue-t/context",
+  "logsDirectory": ".takt/runs/20260414-042835-issue-4-try-result-api-issue-t/logs",
+  "status": "completed",
+  "startTime": "2026-04-14T05:18:33.485Z",
+  "currentStep": "reviewers",
+  "currentIteration": 9,
+  "endTime": "2026-04-14T05:50:25.639Z",
+  "iterations": 9
+}

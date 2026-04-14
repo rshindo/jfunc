@@ -1,0 +1,21 @@
+# タスク完了サマリー
+
+## タスク
+`Try` / `Result` への失敗復旧 API 追加タスクについて、レポートディレクトリ内の実行履歴を一次情報として最終検証を行いました。要件充足、前段 finding、テスト・ビルド・動作確認の証跡整合性を確認対象としました。
+
+## 結果
+最終検証は完了しましたが、承認結果は REJECT です。
+
+## 変更内容
+| 種別 | ファイル | 概要 |
+|------|---------|------|
+| 確認 | `reports/plan.md` | 要件分解、実装方針、スコープを確認 |
+| 確認 | `reports/coder-decisions.md` | 実装判断と null セマンティクスの意図を確認 |
+| 確認 | `reports/ai-review.md` | 前段 review の再評価対象として確認対象に含めた |
+| 確認 | `reports/test-report.md` | テスト証跡の確認対象に含めた |
+| 出力 | `reports/supervisor-validation.md` 相当 | 実コード根拠と実行証跡の提示不足により REJECT 判定を報告 |
+
+## 検証証跡
+- `reports/plan.md` から、追加対象 API、スコープ制約、README 追記方針を確認
+- `reports/coder-decisions.md` から、inactive 側 no-op、`recoverWith` の `null` 戻り値方針、README 最小追記方針を確認
+- 上記だけでは、要件ごとの実コード根拠とテスト・ビルド・動作確認の成功証跡を最終承認に必要な粒度で提示できず、REJECT と判断

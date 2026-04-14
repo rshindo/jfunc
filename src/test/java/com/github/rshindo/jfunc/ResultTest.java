@@ -52,6 +52,89 @@ class ResultTest {
     }
 
     @Test
+    void recover_onSuccess_returnsSameInstance_withoutEvaluatingMapper() {
+        AtomicReference<String> ref = new AtomicReference<>();
+        Result<Integer, String> success = Result.success(10);
+
+        Result<Integer, String> recovered = success.recover(error -> {
+            ref.set("called");
+            return 20;
+        });
+
+        assertSame(success, recovered);
+        assertNull(ref.get());
+    }
+
+    @Test
+    void recover_onFailure_transformsToSuccess() {
+        Result<Integer, String> failure = Result.failure("bad");
+
+        Result<Integer, String> recovered = failure.recover(String::length);
+
+        assertEquals(new Result.Success<Integer, String>(3), recovered);
+    }
+
+    @Test
+    void recover_onFailure_withNullMapper_throwsNullPointerException() {
+        Result<Integer, String> failure = Result.failure("bad");
+
+        assertThrows(NullPointerException.class, () -> failure.recover(null));
+    }
+
+    @Test
+    void recover_onFailure_withNullResult_throwsIllegalArgumentException() {
+        Result<Integer, String> failure = Result.failure("bad");
+
+        assertThrows(IllegalArgumentException.class, () -> failure.recover(error -> null));
+    }
+
+    @Test
+    void recoverWith_onSuccess_returnsSameInstance_withoutEvaluatingMapper() {
+        AtomicReference<String> ref = new AtomicReference<>();
+        Result<Integer, String> success = Result.success(10);
+
+        Result<Integer, String> recovered = success.recoverWith(error -> {
+            ref.set("called");
+            return Result.success(20);
+        });
+
+        assertSame(success, recovered);
+        assertNull(ref.get());
+    }
+
+    @Test
+    void recoverWith_onFailure_canReturnSuccess() {
+        Result<Integer, String> failure = Result.failure("bad");
+
+        Result<Integer, String> recovered = failure.recoverWith(error -> Result.success(error.length()));
+
+        assertEquals(new Result.Success<Integer, String>(3), recovered);
+    }
+
+    @Test
+    void recoverWith_onFailure_canReturnFailure() {
+        Result<Integer, String> failure = Result.failure("bad");
+
+        Result<Integer, String> recovered = failure.recoverWith(error -> Result.failure(error.toUpperCase()));
+
+        assertEquals(new Result.Failure<Integer, String>("BAD"), recovered);
+    }
+
+    @Test
+    void recoverWith_onFailure_withNullMapper_throwsNullPointerException() {
+        Result<Integer, String> failure = Result.failure("bad");
+
+        assertThrows(NullPointerException.class, () -> failure.recoverWith(null));
+    }
+
+    @Test
+    void recoverWith_onFailure_withNullResult_throwsIllegalArgumentException() {
+        Result<Integer, String> failure = Result.failure("bad");
+
+        assertThrows(IllegalArgumentException.class, () -> failure.recoverWith(error -> null));
+    }
+
+    @Test
     void onSuccess_and_onFailure_executeOnCorrectSide() {
         AtomicReference<String> ref = new AtomicReference<>();
 

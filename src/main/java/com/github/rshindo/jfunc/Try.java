@@ -132,6 +132,26 @@ public sealed interface Try<T> {
 	<U> Try<U> flatMap(Function<? super T, Try<U>> mapper);
 
 	/**
+	 * {@link Failure} の例外を成功値へ変換して復旧します。
+	 *
+	 * @param mapper 失敗時の {@link Throwable} を成功値へ変換する関数。{@code null} を返してはならない
+	 * @return {@link Success} の場合はこのインスタンス、{@link Failure} の場合は復旧後の {@link Success}
+	 * @throws IllegalArgumentException mapper が {@code null} を返した場合
+	 * @throws NullPointerException     {@link Failure} に対して {@code mapper} が {@code null} の場合
+	 */
+	Try<T> recover(Function<? super Throwable, ? extends T> mapper);
+
+	/**
+	 * {@link Failure} の例外を別の {@link Try} へ変換して復旧します。
+	 *
+	 * @param mapper 失敗時の {@link Throwable} を {@link Try} へ変換する関数。{@code null} を返してはならない
+	 * @return {@link Success} の場合はこのインスタンス、{@link Failure} の場合は復旧後の {@link Try}
+	 * @throws IllegalArgumentException mapper が {@code null} を返した場合
+	 * @throws NullPointerException     {@link Failure} に対して {@code mapper} が {@code null} の場合
+	 */
+	Try<T> recoverWith(Function<? super Throwable, Try<T>> mapper);
+
+	/**
 	 * Executes the consumer when this is a {@link Success}.
 	 *
 	 * @param consumer side-effect to execute with the success value
@@ -211,6 +231,22 @@ public sealed interface Try<T> {
 		 * {@inheritDoc}
 		 */
 		@Override
+		public Try<T> recover(Function<? super Throwable, ? extends T> mapper) {
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Try<T> recoverWith(Function<? super Throwable, Try<T>> mapper) {
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
 		public void onSuccess(Consumer<? super T> consumer) {
 			consumer.accept(value);
 		}
@@ -280,6 +316,26 @@ public sealed interface Try<T> {
 		@Override
 		public <U> Try<U> flatMap(Function<? super T, Try<U>> mapper) {
 			return new Failure<>(error);
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Try<T> recover(Function<? super Throwable, ? extends T> mapper) {
+			return Try.success(mapper.apply(error));
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Try<T> recoverWith(Function<? super Throwable, Try<T>> mapper) {
+			Try<T> recovered = mapper.apply(error);
+			if (recovered == null) {
+				throw new IllegalArgumentException("recovered try must not be null");
+			}
+			return recovered;
 		}
 
 		/**

@@ -1,0 +1,35 @@
+# AI生成コードレビュー
+
+## 結果: REJECT
+
+## サマリー
+公開APIに追加した Javadoc がリポジトリ規約と不整合で、今回の変更として新規に持ち込まれています。
+
+## 検証した項目
+| 観点 | 結果 | 備考 |
+|------|------|------|
+| 仮定の妥当性 | ✅ | `recover` / `recoverWith` の振る舞い自体は受け入れ条件と整合 |
+| API/ライブラリの実在 | ✅ | 幻覚APIは未検出 |
+| コンテキスト適合 | ❌ | 公開メソッドの Javadoc 言語が規約不一致 |
+| スコープ | ✅ | 追加API、テスト、README例にスコープ逸脱なし |
+
+## 今回の指摘（new）
+| # | finding_id | family_tag | カテゴリ | 場所 | 問題 | 修正案 |
+|---|------------|------------|---------|------|------|--------|
+| 1 | AI-NEW-javadoc-language-recover | context-fit | 規約不整合 | `src/main/java/com/github/rshindo/jfunc/Try.java:134`, `src/main/java/com/github/rshindo/jfunc/Result.java:88` | 追加した公開 API `recover` / `recoverWith` の Javadoc が英語で、公開メソッド/型の Javadoc は日本語というプロジェクト規約に反しています。 | 4 メソッドの Javadoc を日本語へ修正し、挙動・null 非許容・例外条件だけを簡潔に記述する。 |
+
+## 継続指摘（persists）
+| # | finding_id | family_tag | 前回根拠 | 今回根拠 | 問題 | 修正案 |
+|---|------------|------------|----------|----------|------|--------|
+
+## 解消済み（resolved）
+| finding_id | 解消根拠 |
+|------------|----------|
+
+## 再開指摘（reopened）
+| # | finding_id | family_tag | 解消根拠（前回） | 再発根拠 | 問題 | 修正案 |
+|---|------------|------------|----------------|---------|------|--------|
+
+## REJECT判定条件
+- `new`、`persists`、または `reopened` が1件以上ある場合のみ REJECT 可
+- `finding_id` なしの指摘は無効

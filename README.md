@@ -133,6 +133,12 @@ Result<Integer, String> res = Result.success(input)
         .flatMap(parseInt)
         .flatMap(evenOnly);
 
+Result<Integer, String> recovered = Result.<Integer, String>failure("odd:41")
+        .recover(error -> 0);
+
+Result<Integer, String> retried = Result.<Integer, String>failure("nan: 42 ")
+        .recoverWith(error -> Result.success(42));
+
 // Pattern matching
 String msg = switch (res) {
     case Result.Success(var v) -> "OK:" + v;
@@ -154,6 +160,9 @@ Try<Integer> u = Try.of(() -> Integer.parseInt("not-a-number"));
 
 // Map/flatMap
 Try<String> tm = t.map(x -> "v=" + x);
+
+Try<Integer> recoveredTry = u.recover(error -> 0);
+Try<Integer> retriedTry = u.recoverWith(error -> Try.of(() -> Integer.parseInt("123")));
 
 // Pattern matching
 String tl = switch (u) {

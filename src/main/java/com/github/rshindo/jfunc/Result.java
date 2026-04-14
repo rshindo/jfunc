@@ -86,6 +86,26 @@ public sealed interface Result<T, E> {
 	<U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper);
 
 	/**
+	 * {@link Failure} の失敗値を成功値へ変換して復旧します。
+	 *
+	 * @param mapper 失敗値を成功値へ変換する関数。{@code null} を返してはならない
+	 * @return {@link Success} の場合はこのインスタンス、{@link Failure} の場合は復旧後の {@link Success}
+	 * @throws IllegalArgumentException mapper が {@code null} を返した場合
+	 * @throws NullPointerException     {@link Failure} に対して {@code mapper} が {@code null} の場合
+	 */
+	Result<T, E> recover(Function<? super E, ? extends T> mapper);
+
+	/**
+	 * {@link Failure} の失敗値を別の {@link Result} へ変換して復旧します。
+	 *
+	 * @param mapper 失敗値を {@link Result} へ変換する関数。{@code null} を返してはならない
+	 * @return {@link Success} の場合はこのインスタンス、{@link Failure} の場合は復旧後の {@link Result}
+	 * @throws IllegalArgumentException mapper が {@code null} を返した場合
+	 * @throws NullPointerException     {@link Failure} に対して {@code mapper} が {@code null} の場合
+	 */
+	Result<T, E> recoverWith(Function<? super E, Result<T, E>> mapper);
+
+	/**
 	 * Executes the consumer only when this is a {@link Success}.
 	 *
 	 * @param consumer side-effect to execute with the success value
@@ -154,6 +174,16 @@ public sealed interface Result<T, E> {
 		}
 
 		@Override
+		public Result<T, E> recover(Function<? super E, ? extends T> mapper) {
+			return this;
+		}
+
+		@Override
+		public Result<T, E> recoverWith(Function<? super E, Result<T, E>> mapper) {
+			return this;
+		}
+
+		@Override
 		public void onSuccess(Consumer<? super T> consumer) {
 			consumer.accept(value);
 		}
@@ -206,6 +236,20 @@ public sealed interface Result<T, E> {
 		@Override
 		public <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper) {
 			return new Failure<>(error);
+		}
+
+		@Override
+		public Result<T, E> recover(Function<? super E, ? extends T> mapper) {
+			return Result.success(mapper.apply(error));
+		}
+
+		@Override
+		public Result<T, E> recoverWith(Function<? super E, Result<T, E>> mapper) {
+			Result<T, E> recovered = mapper.apply(error);
+			if (recovered == null) {
+				throw new IllegalArgumentException("recovered result must not be null");
+			}
+			return recovered;
 		}
 
 		@Override
