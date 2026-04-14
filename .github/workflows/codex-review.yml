@@ -22,6 +22,7 @@ jobs:
       contents: read
     outputs:
       final_message: ${{ steps.run_codex.outputs.final-message }}
+      run_outcome: ${{ steps.run_codex.outcome }}
 
     steps:
       - name: Check out PR merge commit
@@ -40,6 +41,7 @@ jobs:
 
       - name: Run Codex review
         id: run_codex
+        continue-on-error: true
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
@@ -67,7 +69,7 @@ jobs:
 
   post_review:
     needs: review
-    if: needs.review.outputs.final_message != ''
+    if: always() && needs.review.outputs.run_outcome != ''
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -80,10 +82,17 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
+            const reviewBody = process.env.CODEX_FINAL_MESSAGE?.trim() || [
+              "Codex review could not be completed automatically.",
+              "",
+              "The Codex action started, but it did not produce review output.",
+              "Check the workflow logs and verify the `OPENAI_API_KEY` quota/billing configuration, then rerun the workflow."
+            ].join("\n");
+
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
               event: "COMMENT",
-              body: process.env.CODEX_FINAL_MESSAGE,
+              body: reviewBody,
             });
