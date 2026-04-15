@@ -53,6 +53,78 @@ class ResultTest {
     }
 
     @Test
+    void recover_onSuccess_keepsSuccess() {
+        Result<Integer, String> result = Result.<Integer, String>success(5).recover(error -> 99);
+
+        assertEquals(Result.success(5), result);
+    }
+
+    @Test
+    void recover_onFailure_returnsRecoveredSuccess() {
+        Result<Integer, String> result = Result.<Integer, String>failure("bad").recover(String::length);
+
+        assertEquals(Result.success(3), result);
+    }
+
+    @Test
+    void recover_onFailure_whenMapperReturnsNull_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.<Integer, String>failure("bad").recover(error -> null));
+    }
+
+    @Test
+    void recover_withNullMapper_throwsNullPointerException_onFailure() {
+        assertThrows(NullPointerException.class, () -> Result.<Integer, String>failure("bad").recover(null));
+    }
+
+    @Test
+    void recover_onFailure_whenMapperThrows_propagatesException() {
+        IllegalStateException thrown = assertThrows(IllegalStateException.class,
+                () -> Result.<Integer, String>failure("bad").recover(error -> {
+                    throw new IllegalStateException("recover failed");
+                }));
+
+        assertEquals("recover failed", thrown.getMessage());
+    }
+
+    @Test
+    void recoverWith_onSuccess_keepsSuccess() {
+        Result<Integer, String> result = Result.<Integer, String>success(5).recoverWith(error -> Result.success(99));
+
+        assertEquals(Result.success(5), result);
+    }
+
+    @Test
+    void recoverWith_onFailure_canReturnSuccessOrFailure() {
+        Result<Integer, String> successResult = Result.<Integer, String>failure("bad")
+                .recoverWith(error -> Result.success(error.length()));
+        Result<Integer, String> failureResult = Result.<Integer, String>failure("bad")
+                .recoverWith(error -> Result.failure("still bad"));
+
+        assertEquals(Result.success(3), successResult);
+        assertEquals(Result.failure("still bad"), failureResult);
+    }
+
+    @Test
+    void recoverWith_onFailure_whenMapperReturnsNull_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Result.<Integer, String>failure("bad").recoverWith(error -> null));
+    }
+
+    @Test
+    void recoverWith_withNullMapper_throwsNullPointerException_onFailure() {
+        assertThrows(NullPointerException.class, () -> Result.<Integer, String>failure("bad").recoverWith(null));
+    }
+
+    @Test
+    void recoverWith_onFailure_whenMapperThrows_propagatesException() {
+        IllegalStateException thrown = assertThrows(IllegalStateException.class,
+                () -> Result.<Integer, String>failure("bad").recoverWith(error -> {
+                    throw new IllegalStateException("recoverWith failed");
+                }));
+
+        assertEquals("recoverWith failed", thrown.getMessage());
+    }
+
+    @Test
     void onSuccess_and_onFailure_executeOnCorrectSide() {
         AtomicReference<String> ref = new AtomicReference<>();
 
