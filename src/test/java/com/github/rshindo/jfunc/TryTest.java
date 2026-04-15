@@ -47,6 +47,89 @@ class TryTest {
     }
 
     @Test
+    void recover_onSuccess_keepsSuccess() {
+        Try<Integer> result = Try.success(5).recover(error -> 99);
+
+        assertEquals(Try.success(5), result);
+    }
+
+    @Test
+    void recover_onFailure_returnsRecoveredSuccess() {
+        Try<Integer> result = Try.<Integer>failure(new IOException("bad")).recover(error -> error.getMessage().length());
+
+        assertEquals(Try.success(3), result);
+    }
+
+    @Test
+    void recover_onFailure_whenMapperThrows_returnsFailureOfThrownException() {
+        Try<Integer> result = Try.<Integer>failure(new IOException("bad"))
+                .recover(error -> {
+                    throw new IllegalStateException("recover failed");
+                });
+
+        assertTrue(result instanceof Try.Failure<?>);
+        assertEquals("recover failed", ((Try.Failure<?>) result).error().getMessage());
+    }
+
+    @Test
+    void recover_onFailure_whenMapperReturnsNull_returnsFailure() {
+        Try<Integer> result = Try.<Integer>failure(new IOException("bad")).recover(error -> null);
+
+        assertTrue(result instanceof Try.Failure<?>);
+        assertEquals(IllegalArgumentException.class, ((Try.Failure<?>) result).error().getClass());
+        assertEquals("recovered success value must not be null", ((Try.Failure<?>) result).error().getMessage());
+    }
+
+    @Test
+    void recover_withNullMapper_throwsNullPointerException_onFailure() {
+        assertThrows(NullPointerException.class, () -> Try.<Integer>failure(new IOException("bad")).recover(null));
+    }
+
+    @Test
+    void recoverWith_onSuccess_keepsSuccess() {
+        Try<Integer> result = Try.success(5).recoverWith(error -> Try.success(99));
+
+        assertEquals(Try.success(5), result);
+    }
+
+    @Test
+    void recoverWith_onFailure_canReturnSuccessOrFailure() {
+        Try<Integer> successResult = Try.<Integer>failure(new IOException("bad"))
+                .recoverWith(error -> Try.success(error.getMessage().length()));
+        Try<Integer> failureResult = Try.<Integer>failure(new IOException("bad"))
+                .recoverWith(error -> Try.failure(new IllegalStateException("still bad")));
+
+        assertEquals(Try.success(3), successResult);
+        assertTrue(failureResult instanceof Try.Failure<?>);
+        assertEquals("still bad", ((Try.Failure<?>) failureResult).error().getMessage());
+    }
+
+    @Test
+    void recoverWith_onFailure_whenMapperThrows_returnsFailureOfThrownException() {
+        Try<Integer> result = Try.<Integer>failure(new IOException("bad"))
+                .recoverWith(error -> {
+                    throw new IllegalStateException("recoverWith failed");
+                });
+
+        assertTrue(result instanceof Try.Failure<?>);
+        assertEquals("recoverWith failed", ((Try.Failure<?>) result).error().getMessage());
+    }
+
+    @Test
+    void recoverWith_onFailure_whenMapperReturnsNull_returnsFailure() {
+        Try<Integer> result = Try.<Integer>failure(new IOException("bad")).recoverWith(error -> null);
+
+        assertTrue(result instanceof Try.Failure<?>);
+        assertEquals(IllegalArgumentException.class, ((Try.Failure<?>) result).error().getClass());
+        assertEquals("recovered try must not be null", ((Try.Failure<?>) result).error().getMessage());
+    }
+
+    @Test
+    void recoverWith_withNullMapper_throwsNullPointerException_onFailure() {
+        assertThrows(NullPointerException.class, () -> Try.<Integer>failure(new IOException("bad")).recoverWith(null));
+    }
+
+    @Test
     void onSuccess_onFailure_sideEffects() {
         AtomicReference<String> ref = new AtomicReference<>();
 

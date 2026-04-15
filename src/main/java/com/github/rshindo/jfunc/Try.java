@@ -1,5 +1,6 @@
 package com.github.rshindo.jfunc;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -132,6 +133,26 @@ public sealed interface Try<T> {
 	<U> Try<U> flatMap(Function<? super T, Try<U>> mapper);
 
 	/**
+	 * Recovers from a {@link Failure} by mapping the error to a success value.
+	 *
+	 * @param mapper mapping function for the failure; must not return {@code null}
+	 * @return this {@link Try} when this is {@link Success}; otherwise a recovered {@link Try}
+	 * @throws IllegalArgumentException if this is {@link Failure} and the mapper returns {@code null}
+	 * @throws NullPointerException     if {@code mapper} is {@code null}
+	 */
+	Try<T> recover(Function<? super Throwable, ? extends T> mapper);
+
+	/**
+	 * Recovers from a {@link Failure} by mapping the error to another {@link Try}.
+	 *
+	 * @param mapper mapping function for the failure; must not return {@code null}
+	 * @return this {@link Try} when this is {@link Success}; otherwise the mapped {@link Try}
+	 * @throws IllegalArgumentException if this is {@link Failure} and the mapper returns {@code null}
+	 * @throws NullPointerException     if {@code mapper} is {@code null}
+	 */
+	Try<T> recoverWith(Function<? super Throwable, Try<T>> mapper);
+
+	/**
 	 * Executes the consumer when this is a {@link Success}.
 	 *
 	 * @param consumer side-effect to execute with the success value
@@ -211,6 +232,24 @@ public sealed interface Try<T> {
 		 * {@inheritDoc}
 		 */
 		@Override
+		public Try<T> recover(Function<? super Throwable, ? extends T> mapper) {
+			Objects.requireNonNull(mapper);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Try<T> recoverWith(Function<? super Throwable, Try<T>> mapper) {
+			Objects.requireNonNull(mapper);
+			return this;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
 		public void onSuccess(Consumer<? super T> consumer) {
 			consumer.accept(value);
 		}
@@ -280,6 +319,40 @@ public sealed interface Try<T> {
 		@Override
 		public <U> Try<U> flatMap(Function<? super T, Try<U>> mapper) {
 			return new Failure<>(error);
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Try<T> recover(Function<? super Throwable, ? extends T> mapper) {
+			Objects.requireNonNull(mapper);
+			try {
+				T recovered = mapper.apply(error);
+				if (recovered == null) {
+					throw new IllegalArgumentException("recovered success value must not be null");
+				}
+				return new Success<>(recovered);
+			} catch (Throwable throwable) {
+				return new Failure<>(throwable);
+			}
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Try<T> recoverWith(Function<? super Throwable, Try<T>> mapper) {
+			Objects.requireNonNull(mapper);
+			try {
+				Try<T> recovered = mapper.apply(error);
+				if (recovered == null) {
+					throw new IllegalArgumentException("recovered try must not be null");
+				}
+				return recovered;
+			} catch (Throwable throwable) {
+				return new Failure<>(throwable);
+			}
 		}
 
 		/**

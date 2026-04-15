@@ -12,12 +12,12 @@ A tiny, typed functional utilities library for Java. Sealed, Java‑friendly sum
   - Right‑biased: `map`, `flatMap` operate on `Right`; `mapLeft`/`ifLeft` for `Left`
   - Utilities: `swap()`, `toOptionRight()`, `toOptionLeft()`
 - `Result<T,E>`: Success/Failure for Railway Oriented Programming (ROP)
-  - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`onFailure` for failures
+  - Right‑biased: `map`, `flatMap` on `Success`; `mapFailure`/`recover`/`recoverWith`/`onFailure` for failures
   - Interop: `toOptionSuccess()`, `toOptionFailure()`
   - Minimal API: prefer switch pattern matching over helpers
 - `Try<T>`: Success/Failure for computations that may throw
   - Construct: `Try.of(CheckedSupplier)` to capture exceptions as `Failure`
-  - Right‑biased: `map`, `flatMap` on `Success`; side effects via `onSuccess`/`onFailure`
+  - Right‑biased: `map`, `flatMap` on `Success`; `recover`/`recoverWith` on `Failure`; side effects via `onSuccess`/`onFailure`
   - Interop: `toOptionSuccess()`, `toOptionFailure()`, `toEither()`, `toResult()`
 
 ## Requirements
@@ -170,6 +170,14 @@ Result<List<Integer>, String> parsed = Result.traverse(
         }
     }
 );
+
+Result<Integer, String> fallback = Result.<Integer, String>failure("missing")
+        .recover(error -> 0);
+
+Result<Integer, String> retry = Result.<Integer, String>failure("retryable")
+        .recoverWith(error -> "retryable".equals(error)
+                ? Result.success(1)
+                : Result.failure(error));
 ```
 
 ### Try
@@ -232,6 +240,12 @@ Try<Long> count = Try.of(() -> {
 
 count.onSuccess(c -> System.out.println("lines: " + c))
      .onFailure(e -> System.err.println("read failed: " + e.getMessage()));
+
+Try<Integer> parsedOrZero = Try.of(() -> Integer.parseInt("oops"))
+        .recover(error -> 0);
+
+Try<Integer> retried = Try.of(() -> Integer.parseInt("oops"))
+        .recoverWith(error -> Try.of(() -> Integer.parseInt("123")));
 ```
 
 ## Semantics & Design
@@ -241,6 +255,7 @@ count.onSuccess(c -> System.out.println("lines: " + c))
   - `Option.some(null)` throws; use `ofNullable` to map `null` to `None`.
   - `Either` and `Result` disallow `null` in both variants; mappers must not return `null`.
   - `Try` disallows `null` success values; mappers must not return `null`. Failures carry a non-null `Throwable`.
+  - `Result.recover*` propagates mapper exceptions; `Try.recover*` captures mapper exceptions as `Failure`.
 - Bias:
   - `Either` and `Result` are right‑biased: `map`/`flatMap` act on `Right`/`Success`.
   - Use `mapLeft` (Either) or `mapFailure` (Result) for the left/failure path.

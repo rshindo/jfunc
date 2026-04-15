@@ -160,6 +160,26 @@ public sealed interface Result<T, E> {
 	<U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper);
 
 	/**
+	 * Recovers from a {@link Failure} by mapping the error to a success value.
+	 *
+	 * @param mapper mapping function for the failure value (must not return null)
+	 * @return this {@link Result} when this is {@link Success}; otherwise a recovered {@link Result}
+	 * @throws IllegalArgumentException if this is {@link Failure} and the mapper returns {@code null}
+	 * @throws NullPointerException     if {@code mapper} is {@code null}
+	 */
+	Result<T, E> recover(Function<? super E, ? extends T> mapper);
+
+	/**
+	 * Recovers from a {@link Failure} by mapping the error to another {@link Result}.
+	 *
+	 * @param mapper mapping function for the failure value (must not return null)
+	 * @return this {@link Result} when this is {@link Success}; otherwise the mapped {@link Result}
+	 * @throws IllegalArgumentException if this is {@link Failure} and the mapper returns {@code null}
+	 * @throws NullPointerException     if {@code mapper} is {@code null}
+	 */
+	Result<T, E> recoverWith(Function<? super E, Result<T, E>> mapper);
+
+	/**
 	 * Executes the consumer only when this is a {@link Success}.
 	 *
 	 * @param consumer side-effect to execute with the success value
@@ -235,6 +255,18 @@ public sealed interface Result<T, E> {
 		}
 
 		@Override
+		public Result<T, E> recover(Function<? super E, ? extends T> mapper) {
+			Objects.requireNonNull(mapper);
+			return this;
+		}
+
+		@Override
+		public Result<T, E> recoverWith(Function<? super E, Result<T, E>> mapper) {
+			Objects.requireNonNull(mapper);
+			return this;
+		}
+
+		@Override
 		public void onSuccess(Consumer<? super T> consumer) {
 			consumer.accept(value);
 		}
@@ -292,6 +324,26 @@ public sealed interface Result<T, E> {
 		@Override
 		public <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> mapper) {
 			return new Failure<>(error);
+		}
+
+		@Override
+		public Result<T, E> recover(Function<? super E, ? extends T> mapper) {
+			Objects.requireNonNull(mapper);
+			T recovered = mapper.apply(error);
+			if (recovered == null) {
+				throw new IllegalArgumentException("recovered success value must not be null");
+			}
+			return new Success<>(recovered);
+		}
+
+		@Override
+		public Result<T, E> recoverWith(Function<? super E, Result<T, E>> mapper) {
+			Objects.requireNonNull(mapper);
+			Result<T, E> recovered = mapper.apply(error);
+			if (recovered == null) {
+				throw new IllegalArgumentException("recovered result must not be null");
+			}
+			return recovered;
 		}
 
 		@Override
